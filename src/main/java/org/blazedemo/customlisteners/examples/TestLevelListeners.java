@@ -1,4 +1,4 @@
-package customlisteners.examples;
+package org.blazedemo.customlisteners.examples;
 
 import org.testng.*;
 

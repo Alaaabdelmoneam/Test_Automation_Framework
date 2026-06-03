@@ -15,11 +15,10 @@ public class DriverManager {
         return driver;
     }
 
-    public static WebDriver initDriver(){
+    public static void initDriver(){
         if (driverThreadLocal.get() == null) {
             setDriver(WebDriverFactory.createDriver());
         }
-        return driverThreadLocal.get();
     }
 
     public static void setDriver(WebDriver driver){
