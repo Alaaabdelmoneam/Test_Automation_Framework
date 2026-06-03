@@ -13,18 +13,18 @@ import org.testng.annotations.Test;
 public class LoginTCs {
 
     WebDriver driver;
-    @BeforeMethod
-    public void setup(){
-        driver = WebDriverFactory.getDriver();
-    }
+
     @Test
-    public void TC(){
-        driver.get("https://www.google.com");
-        Assert.assertTrue(driver.findElement(By.className("lnXdpd")).isDisplayed());
+    public void TC1(){
+        DriverManager.getDriver().get("https://www.google.com");
+        Assert.assertTrue(DriverManager.getDriver().findElement(By.className("lnXdpd")).isDisplayed());
+
     }
 
-    @AfterMethod
-    public void teardown(){
-        DriverManager.quitDriver();
+    @Test
+    public void TC2(){
+        DriverManager.getDriver().get("https://www.google.com");
+        Assert.assertTrue(DriverManager.getDriver().findElement(By.className("lnXdpd")).isDisplayed());
+
     }
 }

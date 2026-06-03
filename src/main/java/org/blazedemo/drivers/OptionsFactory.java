@@ -1,6 +1,7 @@
 package org.blazedemo.drivers;
 
-import org.blazedemo.utils.ConfigurationReader;
+import org.blazedemo.config.Configuration;
+import org.blazedemo.config.DriverConfiguration;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
@@ -40,8 +41,7 @@ public enum OptionsFactory {
     };
 
     protected static boolean isHeadlessEnabled() {
-        return Boolean.parseBoolean(
-                ConfigurationReader.getRequiredProperty("headless_mode"));
+        return DriverConfiguration.headless();
     }
 
     abstract public AbstractDriverOptions<?> createOptions();

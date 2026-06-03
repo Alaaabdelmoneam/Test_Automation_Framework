@@ -15,6 +15,13 @@ public class DriverManager {
         return driver;
     }
 
+    public static WebDriver initDriver(){
+        if (driverThreadLocal.get() == null) {
+            setDriver(WebDriverFactory.createDriver());
+        }
+        return driverThreadLocal.get();
+    }
+
     public static void setDriver(WebDriver driver){
         if (driverThreadLocal.get() != null){
             throw new IllegalStateException(
@@ -24,10 +31,14 @@ public class DriverManager {
     }
 
     public static void quitDriver() {
+
         if (driverThreadLocal.get() != null) {
             driverThreadLocal.get().quit();
             // Clear the ThreadLocal map to prevent memory leaks in thread pools
             driverThreadLocal.remove();
+        }
+        else {
+            System.out.println("Can't quit driver as driver=null!");
         }
     }
 }

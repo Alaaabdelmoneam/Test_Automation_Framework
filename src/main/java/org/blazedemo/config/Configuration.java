@@ -1,20 +1,21 @@
-package org.blazedemo.utils;
+package org.blazedemo.config;
 
 import java.io.InputStream;
 import java.util.Properties;
 
-public class ConfigurationReader {
+public class Configuration {
 
-    private static final Properties properties = new Properties();
-    static {
+    private final Properties properties = new Properties();
+
+    public Configuration(String PropertiesFilePath){
         try (InputStream stream =
                      Thread.currentThread()
                              .getContextClassLoader()
-                             .getResourceAsStream("DriverOptions.properties")) {
+                             .getResourceAsStream(PropertiesFilePath)) {
 
             if (stream == null) {
                 throw new RuntimeException(
-                        "DriverOptions.properties not found");
+                        PropertiesFilePath + " not found");
             }
 
             properties.load(stream);
@@ -27,7 +28,8 @@ public class ConfigurationReader {
         }
     }
 
-    public static String getRequiredProperty(
+
+    public String getRequiredProperty(
             String key)
     {
         String value =
@@ -42,7 +44,8 @@ public class ConfigurationReader {
         return value;
     }
 
-    public static String readBrowserType() {
-        return properties.getProperty("browser_type");
+    public boolean getBoolean(String key) {
+        return Boolean.parseBoolean(
+                getRequiredProperty(key));
     }
 }
