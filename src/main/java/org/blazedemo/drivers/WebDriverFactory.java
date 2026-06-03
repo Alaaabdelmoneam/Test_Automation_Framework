@@ -38,7 +38,7 @@ public enum WebDriverFactory {
 
     public static WebDriver getDriver() { // read browser from config
         BrowserType browserType = BrowserType.from(ConfigurationReader.readBrowserType());
-        return (valueOf(browserType.name())).createDriver();
-
+        DriverManager.setDriver((valueOf(browserType.name())).createDriver());
+        return DriverManager.getDriver();
     }
 }
