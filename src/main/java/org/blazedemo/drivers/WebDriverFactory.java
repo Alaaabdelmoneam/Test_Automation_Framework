@@ -11,7 +11,9 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
 import java.util.Locale;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public enum WebDriverFactory {
 
     CHROME {
@@ -40,6 +42,7 @@ public enum WebDriverFactory {
         try {
             return valueOf(browserName.toUpperCase(Locale.ROOT)).createDriverInstance();
         } catch (IllegalArgumentException e) {
+            log.error("Unsupported browser: {}", browserName, e);
             throw new IllegalArgumentException(
                     "Unsupported browser: " + browserName);
         }

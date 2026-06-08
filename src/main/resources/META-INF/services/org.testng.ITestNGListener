@@ -1,2 +1,3 @@
 org.blazedemo.customlisteners.DriverLifecycleListener
 #org.blazedemo.customlisteners.RetryTransformer
+org.blazedemo.customlisteners.RecordingListener

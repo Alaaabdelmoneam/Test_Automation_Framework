@@ -1,51 +1,25 @@
 package org.blazedemo.config;
 
-import java.io.InputStream;
 import java.util.Properties;
+import lombok.extern.log4j.Log4j2;
+import org.blazedemo.utils.datareaders.PropertiesReader;
 
+@Log4j2
 public class Configuration {
 
     private final Properties properties = new Properties();
 
     public Configuration(String PropertiesFilePath){
-        try (InputStream stream =
-                     Thread.currentThread()
-                             .getContextClassLoader()
-                             .getResourceAsStream(PropertiesFilePath)) {
-
-            if (stream == null) {
-                throw new RuntimeException(
-                        PropertiesFilePath + " not found");
-            }
-
-            properties.load(stream);
-
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to load configuration",
-                    e
-            );
-        }
+        PropertiesReader.readProperties(properties, PropertiesFilePath);
     }
-
 
     public String getRequiredProperty(
             String key)
     {
-        String value =
-                properties.getProperty(key);
-
-        if(value == null)
-        {
-            throw new RuntimeException(
-                    "Missing property: " + key);
-        }
-
-        return value;
+        return PropertiesReader.getRequiredProperty(properties, key);
     }
 
     public boolean getBoolean(String key) {
-        return Boolean.parseBoolean(
-                getRequiredProperty(key));
+        return PropertiesReader.getBoolean(properties, key);
     }
 }
