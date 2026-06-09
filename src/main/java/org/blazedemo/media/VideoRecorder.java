@@ -4,7 +4,9 @@ import java.nio.file.Path;
 
 public interface VideoRecorder {
 
-    void start(String testName);
+    String start(String testName);
 
     String stop();
+
+    public String getVideoPath();
 }

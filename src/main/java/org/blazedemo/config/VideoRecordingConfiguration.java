@@ -1,9 +1,7 @@
-package org.blazedemo.media;
-
-import org.blazedemo.config.Configuration;
+package org.blazedemo.config;
 
 
-public class VideoConfiguration {
+public class VideoRecordingConfiguration {
 
     private static final Configuration VIDEO_CONFIGURATION =
             new Configuration("config/video.properties");
@@ -13,10 +11,17 @@ public class VideoConfiguration {
                 VIDEO_CONFIGURATION.getRequiredProperty("video_recording"));
     }
 
-    public static boolean recordOnlyFailures() {
+    public static boolean recordOnFailures() {
         return Boolean.parseBoolean(
-                VIDEO_CONFIGURATION.getRequiredProperty("record_only_failures"));
+                VIDEO_CONFIGURATION.getRequiredProperty("record_on_failures"));
     }
+
+    public static boolean recordOnSuccess() {
+        return Boolean.parseBoolean(
+                VIDEO_CONFIGURATION.getRequiredProperty("record_on_success"));
+    }
+
+
 
     public static String getOutputDirectory() {
         return VIDEO_CONFIGURATION.getRequiredProperty(
@@ -32,10 +37,6 @@ public class VideoConfiguration {
         return VIDEO_CONFIGURATION.getRequiredProperty("capture_mode");
     }
 
-    public static Boolean  deleteIfTestPass(){
-        return Boolean.parseBoolean(
-                VIDEO_CONFIGURATION.getRequiredProperty("delete_if_test_passed"));
-    }
     public static String getWindowTitle() {
         return VIDEO_CONFIGURATION.getRequiredProperty("window_title");
     }

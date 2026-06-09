@@ -1,15 +1,19 @@
 package org.blazedemo.media;
 
-import java.nio.file.Path;
-
 public class NoOpVideoRecorder
         implements VideoRecorder {
 
     @Override
-    public void start(String testName) {}
+    public String start(String testName) {
+        return null;
+    }
 
     @Override
     public String stop() {
+        return null;
+    }
+    @Override
+    public String getVideoPath(){
         return null;
     }
 }

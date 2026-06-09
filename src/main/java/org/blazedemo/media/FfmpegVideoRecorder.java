@@ -1,9 +1,12 @@
 package org.blazedemo.media;
 
+import com.automation.remarks.video.recorder.VideoConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.blazedemo.config.VideoRecordingConfiguration;
 import org.blazedemo.utils.FileUtilities;
 import org.blazedemo.utils.LoggerManager;
 import org.blazedemo.utils.OSUtils;
+import org.blazedemo.utils.TimeStampCreator;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,25 +19,25 @@ import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
-public class FfmpegVideoRecorder
-        implements VideoRecorder {
+public class FfmpegVideoRecorder implements VideoRecorder {
 
-    private final ThreadLocal<Process> process = new ThreadLocal<>();
-    private final ThreadLocal<String> videoPath = new ThreadLocal<>();
+    private Process process ;
+    private String videoPath ;
 
     @Override
-    public synchronized void start(String testName) {
+    public synchronized String start(String testName) {
 
-        videoPath.set(
+        videoPath = (
                 LoggerManager.getLogFolderPath() + File.separator
-                        + VideoConfiguration.getOutputDirectory() + File.separator
-                        + testName
+                        + VideoRecordingConfiguration.getOutputDirectory() + File.separator
+                        + "TC_" + testName + "-"
+                        + Thread.currentThread().getName() + "_thread"
                         + ".mp4"
         );
 
         // Create folder if not created yet
         FileUtilities.createDirectory(
-                videoPath.get().substring(0, videoPath.get().lastIndexOf(File.separator))
+                videoPath.substring(0, videoPath.lastIndexOf(File.separator))
         );
 
         ProcessBuilder builder = new ProcessBuilder(
@@ -46,7 +49,7 @@ public class FfmpegVideoRecorder
         try {
 
             Process p = builder.start();
-            process.set(p);
+            process = p;
 
             new Thread(() -> {
                 try (BufferedReader reader =
@@ -63,16 +66,17 @@ public class FfmpegVideoRecorder
             }).start();
 
         } catch (Exception e) {
-                log.error("FFmpeg reader error", e);
+            log.error("FFmpeg reader error", e);
             throw new RuntimeException("Unable to start video recording", e);
         }
+        return null;
     }
 
     @Override
     public synchronized String stop() {
 
-        Process p = process.get();
-        String path = videoPath.get();
+        Process p = process;
+        String path = videoPath;
 
         if (p == null) return null;
 
@@ -88,11 +92,16 @@ public class FfmpegVideoRecorder
         } catch (Exception e) {
             p.destroyForcibly();
         } finally {
-            process.remove();
-            videoPath.remove();
+            process = null;
+            videoPath= null;
         }
 
         return path;
+    }
+
+    @Override
+    public String getVideoPath() {
+        return "";
     }
 
     private List<String> getVideoConfigurationCommand(){
@@ -105,7 +114,7 @@ public class FfmpegVideoRecorder
         command.add("-y");
 
         command.add("-framerate");
-        command.add(String.valueOf(VideoConfiguration.getFrameRate()));
+        command.add(String.valueOf(VideoRecordingConfiguration.getFrameRate()));
 
         addInputSource(command);
 
@@ -117,7 +126,7 @@ public class FfmpegVideoRecorder
 
         command.add("-pix_fmt");
         command.add("yuv420p");
-        command.add(videoPath.get());
+        command.add(videoPath);
 
         log.info("FFmpeg command: {}", String.join(" ", command));
         return command;
@@ -125,7 +134,7 @@ public class FfmpegVideoRecorder
 
     private void addInputSource(List<String> command){
 
-        String mode = VideoConfiguration.getCaptureMode();
+        String mode = VideoRecordingConfiguration.getCaptureMode();
 
         if (mode.equalsIgnoreCase("desktop")) {
 
@@ -139,7 +148,7 @@ public class FfmpegVideoRecorder
             command.add("-f");
             command.add(OSUtils.getVideoSourceInputFormat());
             command.add("-i");
-            command.add("title=" + VideoConfiguration.getWindowTitle());
+            command.add("title=" + VideoRecordingConfiguration.getWindowTitle());
         } else {
             throw new IllegalArgumentException("Unsupported capture mode: " + mode);
         }

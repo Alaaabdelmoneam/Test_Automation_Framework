@@ -7,6 +7,11 @@ import org.blazedemo.utils.datareaders.JsonReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.apache.commons.io.file.PathUtils.copyDirectory;
 
 @Log4j2
 public class FileUtilities {
@@ -70,11 +75,14 @@ public class FileUtilities {
      * Checks if file exists in resources and gets it
      * */
     public static InputStream getResource(String filePath) {
-        InputStream is = JsonReader.class.getClassLoader().getResourceAsStream(filePath);
+        InputStream is = Thread.currentThread()
+                .getContextClassLoader()
+                .getResourceAsStream(filePath);
 
         if (is == null) {
             log.error("File not found in classpath: {}", filePath);
-            throw new RuntimeException("File not found in classpath: " + filePath);
+            throw new IllegalArgumentException(
+                    "File not found in classpath: " + filePath);
         }
 
         return is;
@@ -113,4 +121,20 @@ public class FileUtilities {
         }
     }
 
+    public static void copyDirectoryFiles
+            (String srcDirectoryPath, String destDirectoryPath) throws IOException {
+        Path previousHistory =
+                Paths.get(srcDirectoryPath);
+
+        Path newResultsHistory =
+                Paths.get(destDirectoryPath);
+
+        if (Files.exists(previousHistory)) {
+            copyDirectory(previousHistory, newResultsHistory);
+        }
+        else {
+            log.warn("Source directory does not exist: {}", previousHistory.toAbsolutePath());
+            throw new RuntimeException("Source directory does not exist: " + previousHistory.toAbsolutePath());
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package org.blazedemo.tests;
 
 import lombok.extern.log4j.Log4j2;
+import org.blazedemo.config.Configuration;
 import org.blazedemo.drivers.DriverManager;
 import org.blazedemo.drivers.WebDriverFactory;
 import org.blazedemo.tests.basetest.BaseTest;
@@ -32,7 +33,6 @@ public class LoginTCs extends BaseTest {
     public void TC2(){
         DriverManager.getDriver().get("https://www.google.com");
         Assert.assertTrue(DriverManager.getDriver().findElement(By.className("lnXdpd")).isDisplayed());
-        Assert.assertTrue(DriverManager.getDriver().findElement(By.className("lnXdpddasdxx")).isDisplayed());
-
+        Assert.assertTrue(DriverManager.getDriver().findElement(By.className("lnXdpd")).isDisplayed());
     }
 }
