@@ -1,15 +1,14 @@
 package org.blazedemo.media;
 
+import io.qameta.allure.model.Status;
 import lombok.extern.log4j.Log4j2;
 import org.blazedemo.config.VideoRecordingConfiguration;
 import org.blazedemo.utils.FileUtilities;
 import org.blazedemo.utils.reporting.ArtifactRepository;
-import org.testng.ITestResult;
 
 import java.io.File;
 import java.nio.file.Path;
 
-import static org.blazedemo.utils.TestCaseStatus.getStatusText;
 
 @Log4j2
 public class RecordingManager {
@@ -37,14 +36,18 @@ public class RecordingManager {
         }
     }
 
-    public static Boolean finishRecording(ITestResult result){
+    public static Path finishRecording(String methodName, Status status){
         if (recorder.get() == null){
             log.warn("No video recorder found for test {}, skipping recording finalization",
-                    result.getMethod().getMethodName());
-            return false;
+                    methodName);
+            return null;
         }
         String path = stopRecording();
-        return applyRecordingPolicy(result, path);
+        if (path != null){
+            applyRecordingPolicy(methodName, status, path);
+            return Path.of(path);
+        }
+        return null;
     }
 
     public static String stopRecording() {
@@ -66,32 +69,32 @@ public class RecordingManager {
         return videoPath;
     }
 
-    public static Boolean applyRecordingPolicy(ITestResult result, String path){
+    public static Boolean applyRecordingPolicy(String methodName, Status status, String path){
 
         log.info("record finished after test {} with status: {}",
-                result.getMethod().getMethodName(), getStatusText(result.getStatus()));
+                methodName, status);
 
-        Boolean videoSavingEnabled = checkIfSavingRequired(result);
+        Boolean videoSavingEnabled = checkIfSavingRequired(status);
         if (path != null){
             File recordedVideo = new File(path);
             if (videoSavingEnabled){
-                log.info("recorded video saved at: {} for TC {}", recordedVideo.getAbsolutePath(), result.getTestName());
+                log.info("recorded video saved at: {} for TC {}", recordedVideo.getAbsolutePath(), methodName);
             }
             else {
                 if (recordedVideo.exists()) {
                     FileUtilities.deleteFile(path);
-                    log.info("recorded video discarded for TC {}", result.getTestName());
+                    log.info("recorded video discarded for TC {}", methodName);
                 }
             }
         }
         return videoSavingEnabled;
     }
 
-    private static Boolean checkIfSavingRequired(ITestResult result){
-        if(result.getStatus() == ITestResult.SUCCESS && VideoRecordingConfiguration.recordOnSuccess()){
+    private static Boolean checkIfSavingRequired(Status status){
+        if(status == Status.PASSED && VideoRecordingConfiguration.recordOnSuccess()){
             return true;
         }
-        else if(result.getStatus() == ITestResult.FAILURE && VideoRecordingConfiguration.recordOnFailures()){
+        else if(status == Status.PASSED && VideoRecordingConfiguration.recordOnFailures()){
             return true;
         }
         else {

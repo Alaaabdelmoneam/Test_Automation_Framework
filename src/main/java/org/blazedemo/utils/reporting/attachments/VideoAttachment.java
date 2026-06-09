@@ -15,11 +15,12 @@ public final class VideoAttachment {
 
         try {
 
-            Allure.addAttachment(
+
+            Allure.getLifecycle().addAttachment(
                     "Execution Video",
                     "video/mp4",
-                    Files.newInputStream(videoPath),
-                    ".mp4"
+                    ".mp4",
+                    Files.newInputStream(videoPath)
             );
 
         } catch (IOException e) {
