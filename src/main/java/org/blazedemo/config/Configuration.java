@@ -22,4 +22,6 @@ public class Configuration {
     public boolean getBoolean(String key) {
         return PropertiesReader.getBoolean(properties, key);
     }
+
+
 }

@@ -1,4 +1,4 @@
-package org.blazedemo.media;
+package org.blazedemo.media.videorecorder;
 
 public class NoOpVideoRecorder
         implements VideoRecorder {

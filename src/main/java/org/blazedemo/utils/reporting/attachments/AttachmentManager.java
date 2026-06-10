@@ -3,7 +3,6 @@ package org.blazedemo.utils.reporting.attachments;
 import org.blazedemo.utils.reporting.ArtifactRepository;
 import org.blazedemo.utils.reporting.config.AllureConfiguration;
 
-import java.nio.file.Path;
 
 public class AttachmentManager {
 
@@ -11,7 +10,11 @@ public class AttachmentManager {
 
     public static void collectTestArtifacts(String testId){
         if (AllureConfiguration.ATTACH_SCREENSHOTS){
-            ScreenshotAttachment.attachScreenshot();
+            ArtifactRepository
+                    .getScreenshot(testId)
+                    .ifPresent(
+                            ScreenshotAttachment::attachScreenshot
+                    );
         }
         if (AllureConfiguration.ATTACH_LOGS){
             BrowserLevelAttachment.attachBrowserLogs();

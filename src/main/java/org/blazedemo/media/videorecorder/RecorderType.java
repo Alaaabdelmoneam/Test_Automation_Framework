@@ -1,4 +1,4 @@
-package org.blazedemo.media;
+package org.blazedemo.media.videorecorder;
 
 import java.util.Locale;
 

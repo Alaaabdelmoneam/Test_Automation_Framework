@@ -4,9 +4,11 @@ import io.qameta.allure.listener.TestLifecycleListener;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.TestResult;
 import lombok.extern.log4j.Log4j2;
-import org.blazedemo.media.RecordingManager;
+import org.blazedemo.drivers.DriverManager;
+import org.blazedemo.media.ScreenshotManager;
+import org.blazedemo.media.videorecorder.RecordingManager;
+import org.blazedemo.utils.reporting.attachments.ScreenshotAttachment;
 import org.blazedemo.utils.reporting.attachments.VideoAttachment;
-import org.testng.ITestResult;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -21,6 +23,11 @@ public class AllureLifecycleListener implements TestLifecycleListener {
             Optional<Path> video =
                     Optional.ofNullable(RecordingManager.finishRecording(result.getName(), result.getStatus()));
             video.ifPresent(VideoAttachment::attachVideo);
+
+            Optional<Path> screenshot =
+                    Optional.of(ScreenshotManager.takePageScreenshot(DriverManager.getDriver(), result.getName()));
+
+            screenshot.ifPresent(ScreenshotAttachment::attachScreenshot);
 
         }
     }

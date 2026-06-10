@@ -1,6 +1,4 @@
-package org.blazedemo.media;
-
-import java.nio.file.Path;
+package org.blazedemo.media.videorecorder;
 
 public interface VideoRecorder {
 

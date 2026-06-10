@@ -1,14 +1,9 @@
-package org.blazedemo.media;
+package org.blazedemo.media.videorecorder;
 
-import com.automation.remarks.video.recorder.VideoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.blazedemo.config.VideoRecordingConfiguration;
-import org.blazedemo.utils.FileUtilities;
-import org.blazedemo.utils.LoggerManager;
 import org.blazedemo.utils.OSUtils;
-import org.blazedemo.utils.TimeStampCreator;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,20 +20,9 @@ public class FfmpegVideoRecorder implements VideoRecorder {
     private String videoPath ;
 
     @Override
-    public synchronized String start(String testName) {
+    public synchronized String start(String videoPath) {
 
-        videoPath = (
-                LoggerManager.getLogFolderPath() + File.separator
-                        + VideoRecordingConfiguration.getOutputDirectory() + File.separator
-                        + "TC_" + testName + "-"
-                        + Thread.currentThread().getName() + "_thread"
-                        + ".mp4"
-        );
-
-        // Create folder if not created yet
-        FileUtilities.createDirectory(
-                videoPath.substring(0, videoPath.lastIndexOf(File.separator))
-        );
+        this.videoPath = videoPath;
 
         ProcessBuilder builder = new ProcessBuilder(
                 getVideoConfigurationCommand()
@@ -58,7 +42,8 @@ public class FfmpegVideoRecorder implements VideoRecorder {
 
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        log.info("[FFMPEG] {}", line);
+                        // uncomment to see Ffmpeg logs
+                        //log.info("[FFMPEG] {}", line);
                     }
                 } catch (Exception e) {
                     log.error("Error reading FFmpeg output", e);

@@ -1,15 +1,9 @@
 package org.blazedemo.customlisteners;
 
 import lombok.extern.log4j.Log4j2;
-import org.blazedemo.media.RecordingManager;
-import org.blazedemo.utils.reporting.ArtifactRepository;
-import org.blazedemo.utils.reporting.attachments.AttachmentManager;
-import org.blazedemo.utils.reporting.attachments.VideoAttachment;
+import org.blazedemo.media.videorecorder.RecordingManager;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-
-import java.nio.file.Path;
-import java.util.Optional;
 
 @Log4j2
 public class RecordingListener implements ITestListener {

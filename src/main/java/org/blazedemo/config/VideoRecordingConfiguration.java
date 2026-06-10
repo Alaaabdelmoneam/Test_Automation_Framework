@@ -1,7 +1,7 @@
 package org.blazedemo.config;
 
 
-public class VideoRecordingConfiguration {
+public class VideoRecordingConfiguration{
 
     private static final Configuration VIDEO_CONFIGURATION =
             new Configuration("config/video.properties");
@@ -39,6 +39,10 @@ public class VideoRecordingConfiguration {
 
     public static String getWindowTitle() {
         return VIDEO_CONFIGURATION.getRequiredProperty("window_title");
+    }
+
+    public static String getExtension() {
+        return VIDEO_CONFIGURATION.getRequiredProperty("extension");
     }
 
 

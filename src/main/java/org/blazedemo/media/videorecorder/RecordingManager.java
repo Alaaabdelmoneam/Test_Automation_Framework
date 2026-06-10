@@ -1,30 +1,44 @@
-package org.blazedemo.media;
+package org.blazedemo.media.videorecorder;
 
 import io.qameta.allure.model.Status;
 import lombok.extern.log4j.Log4j2;
 import org.blazedemo.config.VideoRecordingConfiguration;
+import org.blazedemo.media.MediaUtilities;
 import org.blazedemo.utils.FileUtilities;
 import org.blazedemo.utils.reporting.ArtifactRepository;
+
 
 import java.io.File;
 import java.nio.file.Path;
 
 
 @Log4j2
-public class RecordingManager {
+public class RecordingManager extends MediaUtilities {
 
     private static final ThreadLocal<VideoRecorder>
             recorder = new ThreadLocal<>();
 
+    private static final String extension =
+            VideoRecordingConfiguration.getExtension();
+
+    private static final String outputDirectory =
+            VideoRecordingConfiguration.getOutputDirectory();
+
     public static void startRecording(
             String testName) {
+
+        String videoPath = getUniqueName(testName, extension, outputDirectory);
+
+        // Create folder if not created yet
+        createParentMediaDirectory(videoPath);
 
         if(VideoRecordingConfiguration.isRecordingEnabled()) {
 
             VideoRecorder videoRecorder =
                     new FfmpegVideoRecorder();
 
-            videoRecorder.start(testName);
+            log.debug(videoPath);
+            videoRecorder.start(videoPath);
 
             recorder.set(videoRecorder);
 
@@ -90,6 +104,7 @@ public class RecordingManager {
         return videoSavingEnabled;
     }
 
+    // refactor for media... this function can be central for videos and screenshots
     private static Boolean checkIfSavingRequired(Status status){
         if(status == Status.PASSED && VideoRecordingConfiguration.recordOnSuccess()){
             return true;
