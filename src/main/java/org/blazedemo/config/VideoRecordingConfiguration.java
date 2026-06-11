@@ -13,12 +13,12 @@ public class VideoRecordingConfiguration{
 
     public static boolean recordOnFailures() {
         return Boolean.parseBoolean(
-                VIDEO_CONFIGURATION.getRequiredProperty("record_on_failures"));
+                VIDEO_CONFIGURATION.getRequiredProperty("save_record_on_failures"));
     }
 
     public static boolean recordOnSuccess() {
         return Boolean.parseBoolean(
-                VIDEO_CONFIGURATION.getRequiredProperty("record_on_success"));
+                VIDEO_CONFIGURATION.getRequiredProperty("save_record_on_success"));
     }
 
 

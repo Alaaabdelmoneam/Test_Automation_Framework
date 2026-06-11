@@ -19,10 +19,12 @@ import java.nio.file.Path;
 public final class ScreenshotAttachment {
     public static void attachScreenshot(Path screenshotPath) {
 
+        String screenshotPathString = screenshotPath.toString();
+        String screenshotName = screenshotPathString.substring(screenshotPathString.lastIndexOf(File.separator));
         try {
             byte[] bytes = Files.readAllBytes(screenshotPath);
             Allure.addAttachment(
-                    "Screenshot_" + Thread.currentThread().getName() + System.nanoTime(),
+                    "Screenshot_" + screenshotName,
                     new ByteArrayInputStream(
                             bytes
                     )

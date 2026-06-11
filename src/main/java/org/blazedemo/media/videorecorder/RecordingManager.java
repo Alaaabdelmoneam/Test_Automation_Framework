@@ -10,6 +10,8 @@ import org.blazedemo.utils.reporting.ArtifactRepository;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Log4j2
@@ -17,6 +19,9 @@ public class RecordingManager extends MediaUtilities {
 
     private static final ThreadLocal<VideoRecorder>
             recorder = new ThreadLocal<>();
+
+    private static final Set<VideoRecorder> ACTIVE_RECORDERS =
+            ConcurrentHashMap.newKeySet();
 
     private static final String extension =
             VideoRecordingConfiguration.getExtension();
@@ -41,6 +46,7 @@ public class RecordingManager extends MediaUtilities {
             videoRecorder.start(videoPath);
 
             recorder.set(videoRecorder);
+            ACTIVE_RECORDERS.add(videoRecorder);
 
             log.info("record started ");
         }
@@ -51,12 +57,15 @@ public class RecordingManager extends MediaUtilities {
     }
 
     public static Path finishRecording(String methodName, Status status){
-        if (recorder.get() == null){
+        VideoRecorder videoRecorder = recorder.get();
+        if (videoRecorder == null){
             log.warn("No video recorder found for test {}, skipping recording finalization",
                     methodName);
             return null;
         }
         String path = stopRecording();
+        ACTIVE_RECORDERS.remove(videoRecorder);
+
         if (path != null){
             applyRecordingPolicy(methodName, status, path);
             return Path.of(path);
@@ -83,6 +92,36 @@ public class RecordingManager extends MediaUtilities {
         return videoPath;
     }
 
+    // thread-level cleanup on exception
+    public static void forceStopRecording(){
+        VideoRecorder videoRecorder =
+                recorder.get();
+
+
+        if(videoRecorder == null) {
+            return;
+        }
+
+        videoRecorder.stop();
+        ACTIVE_RECORDERS.remove(videoRecorder);
+    }
+
+    // suite level cleanup
+    public static void stopAllRecordings() {
+
+        ACTIVE_RECORDERS.forEach(recorder -> {
+            if (recorder != null) {
+                try {
+                    recorder.stop();
+                } catch (Exception e) {
+                    log.error("Unable to stop recorder", e);
+                }
+            }
+        });
+
+        ACTIVE_RECORDERS.clear();
+    }
+
     public static Boolean applyRecordingPolicy(String methodName, Status status, String path){
 
         log.info("record finished after test {} with status: {}",
@@ -104,12 +143,17 @@ public class RecordingManager extends MediaUtilities {
         return videoSavingEnabled;
     }
 
+
+
     // refactor for media... this function can be central for videos and screenshots
     private static Boolean checkIfSavingRequired(Status status){
         if(status == Status.PASSED && VideoRecordingConfiguration.recordOnSuccess()){
             return true;
         }
-        else if(status == Status.PASSED && VideoRecordingConfiguration.recordOnFailures()){
+        else if(status == Status.FAILED && VideoRecordingConfiguration.recordOnFailures()){
+            return true;
+        }
+        else if(status == Status.BROKEN && VideoRecordingConfiguration.recordOnFailures()){
             return true;
         }
         else {

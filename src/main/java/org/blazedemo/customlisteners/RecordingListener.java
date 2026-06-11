@@ -11,25 +11,19 @@ public class RecordingListener implements ITestListener {
         RecordingManager.startRecording(result.getMethod().getMethodName());
     }
 
-//    public void onTestSuccess(ITestResult result) {
-//        Optional<Path> video =
-//                Optional.ofNullable(RecordingManager.finishRecording(result));
-//
-//        video.ifPresent(VideoAttachment::attachVideo);
-//
-//    }
-//
-//    public void onTestFailure(ITestResult result) {
-////        Optional<Path> video =
-////                Optional.ofNullable(RecordingManager.finishRecording(result));
-////
-////        video.ifPresent(VideoAttachment::attachVideo);
-//    }
-//
-//    public void onTestSkipped(ITestResult result) {
-//        Optional<Path> video =
-//                Optional.ofNullable(RecordingManager.finishRecording(result));
-//
-//        video.ifPresent(VideoAttachment::attachVideo);
-//    }
+
+    @Override
+    public void onTestFailure(ITestResult result) {
+        RecordingManager.stopRecording();
+    }
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        RecordingManager.stopRecording();
+    }
+
+    @Override
+    public void onTestSkipped(ITestResult result) {
+        RecordingManager.stopRecording();
+    }
 }

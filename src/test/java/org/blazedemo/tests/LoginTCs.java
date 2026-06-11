@@ -3,13 +3,16 @@ package org.blazedemo.tests;
 import lombok.extern.log4j.Log4j2;
 import org.blazedemo.drivers.DriverManager;
 import org.blazedemo.media.ScreenshotManager;
+import org.blazedemo.media.videorecorder.RecordingManager;
 import org.blazedemo.tests.basetest.BaseTest;
 import org.blazedemo.utils.actions.ElementsActions;
+import org.blazedemo.utils.reporting.attachments.BrowserLevelAttachment;
 import org.blazedemo.utils.reporting.attachments.ScreenshotAttachment;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.devtools.v143.page.model.Screenshot;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
@@ -27,10 +30,13 @@ public class LoginTCs extends BaseTest {
         webDriver.get("https://practice.expandtesting.com/scrollbars");
         Path screenshotPath = ScreenshotManager.takePageScreenshot(webDriver, testMethodName);
         By hidingButton = By.id("hidingButton");
-        ElementsActions.scrollIntoElementJS(hidingButton);
-        Path elementScreenshotPath = ScreenshotManager.takeElementScreenshot(hidingButton, testMethodName);
-        ScreenshotAttachment.attachScreenshot(screenshotPath);
-        ScreenshotAttachment.attachScreenshot(elementScreenshotPath);
+        throw new RuntimeException("Eaa");
+//        ElementsActions.scrollIntoElementJS(hidingButton);
+//        Path elementScreenshotPath = ScreenshotManager.takeElementScreenshot(hidingButton, testMethodName);
+//        ScreenshotAttachment.attachScreenshot(elementScreenshotPath);
+//        BrowserLevelAttachment.attachBrowserLogs();
+//        BrowserLevelAttachment.attachPageSource();
+//        BrowserLevelAttachment.attachCurrentURL();
     }
 
     @Test
@@ -39,5 +45,11 @@ public class LoginTCs extends BaseTest {
         webDriver.get("https://www.google.com");
         Assert.assertTrue(webDriver.findElement(By.className("lnXdpd")).isDisplayed());
         Assert.assertTrue(webDriver.findElement(By.className("lnXdpd")).isDisplayed());
+    }
+
+    @AfterMethod(alwaysRun = true)
+    public void cleanup() {
+        RecordingManager.forceStopRecording();
+        log.info("Recorder instance cleaned up!");
     }
 }

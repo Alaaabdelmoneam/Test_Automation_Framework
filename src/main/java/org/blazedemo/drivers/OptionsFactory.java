@@ -15,6 +15,8 @@ public enum OptionsFactory {
             ChromeOptions options = new ChromeOptions();
             if (isHeadlessEnabled()){
                 options.addArguments("--headless=new");
+                options.addArguments("--disable-gpu");
+                options.addArguments("--disable-gpu-compositing");
             }
             return options;
         }

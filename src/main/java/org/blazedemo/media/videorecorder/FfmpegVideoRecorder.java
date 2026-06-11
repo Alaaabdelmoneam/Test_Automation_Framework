@@ -2,6 +2,7 @@ package org.blazedemo.media.videorecorder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.blazedemo.config.VideoRecordingConfiguration;
+import org.blazedemo.drivers.DriverManager;
 import org.blazedemo.utils.OSUtils;
 
 import java.util.ArrayList;
@@ -33,6 +34,13 @@ public class FfmpegVideoRecorder implements VideoRecorder {
         try {
 
             Process p = builder.start();
+
+            Thread.sleep(1000);
+
+            if (!p.isAlive()) {
+                throw new RuntimeException("FFmpeg failed to start");
+            }
+
             process = p;
 
             new Thread(() -> {
@@ -128,12 +136,13 @@ public class FfmpegVideoRecorder implements VideoRecorder {
             command.add("-i");
             command.add("desktop");
 
-        } else if (mode.equalsIgnoreCase("window")) {
+        } else if (mode.equalsIgnoreCase("application")) {
 
             command.add("-f");
             command.add(OSUtils.getVideoSourceInputFormat());
             command.add("-i");
             command.add("title=" + VideoRecordingConfiguration.getWindowTitle());
+
         } else {
             throw new IllegalArgumentException("Unsupported capture mode: " + mode);
         }

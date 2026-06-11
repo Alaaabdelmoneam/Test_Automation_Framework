@@ -8,14 +8,18 @@ import java.io.IOException;
 public class TerminalUtils {
     public static void executeTerminalCommand(String... commandParts) {
         try {
-            Process process = Runtime.getRuntime().exec(commandParts); //allure generate -o reports --single-file --clean
+            ProcessBuilder pb = new ProcessBuilder(commandParts);
+            pb.inheritIO();
+
+            Process process = pb.start();
             int exitCode = process.waitFor();
+
             if (exitCode != 0) {
-                log.error("Command failed with exit code: {}", exitCode);
+                log.error("Command failed with exit code {}", exitCode);
             }
-        } catch (IOException | InterruptedException e) {
-            log.error("Failed to execute terminal command: {}, error message {}",
-                    String.join(" ", commandParts), e.getMessage());
+
+        } catch (Exception e) {
+            log.error("Failed executing command", e);
         }
     }
 }
