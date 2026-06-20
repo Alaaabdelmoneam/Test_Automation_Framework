@@ -9,6 +9,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 
 import org.blazedemo.drivers.DriverManager;
 
@@ -24,9 +25,10 @@ public class ScreenshotManager{
     public static Path takePageScreenshot(WebDriver driver, String testName) {
 
 
+        String safeTitle = Objects.requireNonNull(driver.getTitle()).replaceAll("[\\\\/:*?\"<>|]", "_");
         String screenshotPathString =
                 getUniqueName(testName, extension,outputDirectory,
-                        "pageTitle{", driver.getTitle(), "}");
+                        "pageTitle{", safeTitle, "}");;
         createParentMediaDirectory(screenshotPathString);
         try {
             File source = ((TakesScreenshot) driver)
