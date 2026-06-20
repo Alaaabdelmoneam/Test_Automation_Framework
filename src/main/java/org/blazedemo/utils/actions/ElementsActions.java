@@ -1,10 +1,13 @@
 package org.blazedemo.utils.actions;
 
 import lombok.extern.log4j.Log4j2;
+import org.blazedemo.drivers.DriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Action;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.Select;
 
 import java.io.File;
 
@@ -23,10 +26,11 @@ public class ElementsActions extends BaseAction {
 
         getDefaultWait().until(d -> {
             try {
+                scrollIntoElementJS(by);
                 d.findElement(by).click();
                 return true;
             } catch (Exception e) {
-                log.info("Failed to accept Alert " +
+                log.info("Failed to click element " +
                         "due to error {} ,retrying...", e.getMessage());
                 return false;
             }
@@ -37,6 +41,7 @@ public class ElementsActions extends BaseAction {
     public static void sendText(By by, String text) {
         getDefaultWait().until(d -> {
             try {
+                scrollIntoElementJS(by);
                 d.findElement(by).clear();
                 d.findElement(by).sendKeys(text);
                 return true;
@@ -47,6 +52,40 @@ public class ElementsActions extends BaseAction {
             }
         });
     }
+
+    // get element text
+    public static String getText(By by){
+        try {
+            return getDefaultWait().until(d -> {
+                try {
+                    scrollIntoElementJS(by);
+                    return d.findElement(by).getText();
+                } catch (Exception e) {
+                    log.info("Failed to get text of element due to error {} ,retrying...", e.getMessage());
+                    return null;
+                }
+            });
+        } catch (Exception e) {
+            log.info("couldn't get element text with locator {}: {}", by, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    // get element text
+    public static void hover(By by){
+        getDefaultWait().until(d -> {
+            try {
+                scrollIntoElementJS(by);
+                new Actions(d).moveToElement(d.findElement(by)).perform();
+                return true;
+            } catch (Exception e) {
+                log.info("Failed to hover to element " +
+                        "due to error {} ,retrying...", e.getMessage());
+                return false;
+            }
+        });
+    }
+
 
     // take screenshot
     public static void takeScreenshot() {
@@ -59,6 +98,7 @@ public class ElementsActions extends BaseAction {
         String AbsolutePath = System.getProperty("user.dir") + File.separator + filePath;
         getDefaultWait().until(d -> {
             try {
+                scrollIntoElementJS(by);
                 d.findElement(by).sendKeys(AbsolutePath);
                 return true;
             } catch (Exception e) {
@@ -84,15 +124,23 @@ public class ElementsActions extends BaseAction {
         });
     }
 
-    // scroll into element using JS
+    /**
+     *  scroll into element using JS
+     *  Align the element to the center of the viewport
+     *  block value can be:
+     *  'start' for aligning to start of page
+     *  'end': for aligning to end of page
+     *  inline:'nearest' prevents un-necessary horizontal scrolling.
+    **/
     public static void scrollIntoElementJS(By by) {
         getDefaultWait().until(d -> {
             try {
                 JavascriptExecutor js = (JavascriptExecutor) d;
-                // Align the TOP of the element to the top of the viewport
-                js.executeScript("arguments[0].scrollIntoView(true);", d.findElement(by));
-                // OR: Align the BOTTOM of the element to the bottom of the viewport
-//                js.executeScript("arguments[0].scrollIntoView(false);", d.findElement(by));
+
+                js.executeScript(
+                        "arguments[0].scrollIntoView({block:'center', inline:'nearest'});",
+                        d.findElement(by)
+                );
                 return true;
 
             } catch (Exception e) {
@@ -103,4 +151,40 @@ public class ElementsActions extends BaseAction {
         });
     }
 
+    public static void submitForm(By by){
+        DriverManager.getDriver().findElement(by).submit();
+    }
+
+    public static boolean ElementDisplayed(By by){
+        try {
+            return getDefaultWait().until(d -> {
+                try {
+                    scrollIntoElementJS(by);
+                    return d.findElement(by).isDisplayed();
+                } catch (Exception e) {
+                    log.info("Failed to get display state of element due to error {} ,retrying...", e.getMessage());
+                    return false;
+                }
+            });
+        } catch (Exception e) {
+            log.info("ElementDisplayed timed out or failed for {}: {}", by, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void SelectElementFromDropdown(By by, String value){
+        getDefaultWait().until(d -> {
+            try {
+                scrollIntoElementJS(by);
+                Select dropdown = new Select(d.findElement(by));
+                dropdown.selectByVisibleText(value);
+                log.info("Selected element successfully");
+                return true;
+            } catch (Exception e) {
+                log.info("Failed to select element {} from dropdown " +
+                        "due to error {} ,retrying...", value, e.getMessage());
+                return false;
+            }
+        });
+    }
 }

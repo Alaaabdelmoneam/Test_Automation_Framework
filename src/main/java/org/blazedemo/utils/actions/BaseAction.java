@@ -3,6 +3,7 @@ package org.blazedemo.utils.actions;
 import lombok.extern.log4j.Log4j2;
 import org.blazedemo.config.WaitConfiguration;
 import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -21,6 +22,7 @@ public class BaseAction {
                 .pollingEvery(
                         CONFIG.getPollingIntervalMillis())
                 .ignoring(NoAlertPresentException.class)
+                .ignoring(NoSuchElementException.class)
                 .withMessage(
                         CONFIG.getTimeoutMessage());
     }
