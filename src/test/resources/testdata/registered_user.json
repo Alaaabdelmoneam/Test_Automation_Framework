@@ -1,0 +1,23 @@
+{
+  "name": "John Doe",
+  "email": "admin23s2ddsdaddddda45@admin.com",
+  "title": "Mr.",
+  "password": "admin2@admin.com",
+
+  "birthDay": "19",
+  "birthMonth": "February",
+  "birthYear": "2002",
+
+  "firstName": "John",
+  "lastName": "Doe",
+  "company": "ACME Corp",
+  "firstAddress": "123 Main St",
+  "secondAddress": "Apt 4B",
+
+  "country": "India",
+  "state": "CA",
+  "city": "USA",
+  "zipcode": "52",
+
+  "mobileNumber": "010"
+}
