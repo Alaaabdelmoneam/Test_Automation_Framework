@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.blazedemo.config.DriverConfiguration;
 import org.blazedemo.config.Configuration;
+import org.blazedemo.config.VideoRecordingConfiguration;
+import org.blazedemo.drivers.DriverManager;
 import org.blazedemo.media.videorecorder.RecordingManager;
 import org.blazedemo.utils.OSUtils;
 import org.blazedemo.utils.reporting.ReportingManager;
@@ -20,9 +22,15 @@ public class SuiteLevelListener implements ISuiteListener {
 
     @Override
     public void onFinish(ISuite suite) {
-        RecordingManager.stopAllRecordings();
-        log.info("All Recorders Cleaned Up!");
-        ReportingManager.generateReport();
+        if (VideoRecordingConfiguration.isRecordingEnabled()){
+            // Don't need to use UI annotations, it just stops recording if there is pending recordings
+            RecordingManager.stopAllRecordings();
+            log.info("All Recorders Cleaned Up!");
+        }
+
+        if (AllureConfiguration.GENERATE_REPORT){
+            ReportingManager.generateReport();
+        }
 
     }
 }
