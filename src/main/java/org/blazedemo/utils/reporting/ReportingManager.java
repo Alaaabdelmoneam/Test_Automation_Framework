@@ -17,13 +17,15 @@ import org.blazedemo.utils.reporting.config.AllureConfiguration;
 import org.blazedemo.utils.reporting.config.ReportMode;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.blazedemo.utils.reporting.config.ReportMode.checkReportingMode;
 
@@ -71,29 +73,63 @@ public class ReportingManager {
         // allow to overwrite? -y --> yes, -n --> no
         command.add(AllureConfiguration.RESULTS_DIRECTORY);
 
-        String outputDir = getOutputDirectory(command);
+        String outputDir = configureReportingMode(command);
 
         if (AllureConfiguration.OVERWRITE_REPORT)
         {
             command.add("--clean");
         }
 
-        log.info("Allure Generation command: {}", String.join(" ", command));
-        log.info("report generated at: {}", outputDir);
+        // generate with history
+        if (AllureConfiguration.ACCUMULATE_PAST_RESULTS
+                && FileUtilities.checkIfFileExists(AllureConfiguration.HISTORY_DIRECTORY)
+                && FileUtilities.checkIfFileExists(AllureConfiguration.RESULTS_DIRECTORY)){
+            try {
+
+                FileUtilities.createDirectory(AllureConfiguration.RESULTS_HISTORY_DIRECTORY);
+
+                FileUtilities.copyDirectoryFiles(
+                        AllureConfiguration.HISTORY_DIRECTORY,
+                        AllureConfiguration.RESULTS_HISTORY_DIRECTORY
+
+                );
+                log.info("Files Copied");
+            }
+            catch (IOException e){
+                log.error("Couldn't Generate Report with history", e);
+                throw new RuntimeException("Couldn't Generate Report with history", e);
+            }
+        }
 
         // generate report
         TerminalUtils.executeTerminalCommand(command.toArray(new String[0]));
 
+        // Delete Results Directory
+        FileUtilities.deleteDirectory(AllureConfiguration.RESULTS_DIRECTORY);
+
+        log.info("report generated at: {}", outputDir);
+
         Path indexFile = Paths.get(outputDir, "index.html");
 
-        String reportName = indexFile.toString() + "index_" + TimeStampCreator.getCurrentTime()+".html";
-
-        FileUtilities.renameFileOrDirectory(String.valueOf(indexFile), reportName);
-        if (AllureConfiguration.AUTO_OPEN){
-            openReport(reportName);
+        if (checkReportingMode(AllureConfiguration.REPORT_MODE) == ReportMode.SINGLE_FILE_MODE){
+            String reportName = indexFile.toString() + "index_" + TimeStampCreator.getCurrentTime()+".html";
+            FileUtilities.renameFileOrDirectory(String.valueOf(indexFile), reportName);
+            if (AllureConfiguration.AUTO_OPEN){
+                openSingleReport(reportName);
+            }
+        } else if (checkReportingMode(AllureConfiguration.REPORT_MODE) == ReportMode.MULTI_FILE_MODE) {
+            if (AllureConfiguration.AUTO_OPEN) {
+                log.warn("""
+            Auto-open is disabled for multi-file Allure reports.
+            Open the report using:
+            allure open {}
+            """,
+                        getOutputDirectory()
+                );
+            }
         }
     }
-    public static void openReport(String reportPath){
+    public static void openSingleReport(String reportPath){
         List<String> cmd = new ArrayList<>();
         cmd.add("cmd");
         cmd.add("/c");
@@ -101,27 +137,12 @@ public class ReportingManager {
         TerminalUtils.executeTerminalCommand(cmd.toArray(new String[0]));
     }
 
-    private static String getOutputDirectory(List<String> command){
+    private static String configureReportingMode(List<String> command){
         command.add("-o");
-        String outputDirectory = null;
+        String outputDirectory = getOutputDirectory();
+        command.add(outputDirectory);
         if (checkReportingMode(AllureConfiguration.REPORT_MODE) == ReportMode.SINGLE_FILE_MODE){
-            outputDirectory = AllureConfiguration.REPORT_OUTPUT_DIRECTORY
-                    + File.separator
-                    + AllureConfiguration.SINGLE_FILE_OUTPUT_DIRECTORY;
-
-            command.add(outputDirectory);
             command.add("--single-file");
-        }
-        else if(checkReportingMode(AllureConfiguration.REPORT_MODE) == ReportMode.MULTI_FILE_MODE){
-            outputDirectory = AllureConfiguration.REPORT_OUTPUT_DIRECTORY
-                    + File.separator
-                    + AllureConfiguration.MULTI_FILE_OUTPUT_DIRECTORY;
-
-            command.add(outputDirectory);
-        }
-        else {
-            log.error("Invalid Mode!");
-            throw new RuntimeException("couldn't resolve output directory, please check the required mode");
         }
 
         // report name in dashboard (not the file name)
@@ -132,6 +153,17 @@ public class ReportingManager {
         return outputDirectory;
     }
 
+    public static String getOutputDirectory(){
+        if (checkReportingMode(AllureConfiguration.REPORT_MODE) == ReportMode.SINGLE_FILE_MODE) {
+            return AllureConfiguration.SINGLE_FILE_OUTPUT_DIRECTORY;
+        } else if(checkReportingMode(AllureConfiguration.REPORT_MODE) == ReportMode.MULTI_FILE_MODE){
+            return AllureConfiguration.MULTI_FILE_OUTPUT_DIRECTORY;
+        }
+        else {
+            log.error("Invalid Mode!");
+            throw new RuntimeException("couldn't resolve output directory, please check the required mode");
+        }
+    }
     public static void main(String[] args){
 //        checkReportingMode(AllureConfiguration.REPORT_MODE);
         List<String> command = List.of(
