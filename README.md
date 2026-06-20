@@ -116,8 +116,6 @@ Test_Automation_Framework/
 │   │       │   │   └── ReportingManager.java      # Report generation
 │   │       │   ├── TimeStampCreator.java          # Timestamp utilities
 │   │       │   └── OSUtils.java                   # OS detection
-│   │       └── media/
-│   │           └── ScreenshotManager.java
 │   │
 │   └── test/
 │       ├── java/org/blazedemo/
@@ -626,4 +624,3 @@ This project is part of the Automation Exercise and follows its licensing terms.
 
 **Last Updated**: June 20, 2026
 **Framework Version**: 1.0-SNAPSHOT
-
