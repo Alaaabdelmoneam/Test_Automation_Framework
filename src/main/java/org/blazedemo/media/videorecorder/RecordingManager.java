@@ -9,9 +9,13 @@ import org.blazedemo.utils.reporting.ArtifactRepository;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.blazedemo.utils.FileUtilities.checkIfFileExists;
 
 
 @Log4j2
@@ -75,6 +79,11 @@ public class RecordingManager extends MediaUtilities {
 
     public static String stopRecording() {
 
+        if (!VideoRecordingConfiguration.isRecordingEnabled()){
+            log.error("Can't Stop recording if recording isn't enabled at the first place!");
+            log.error("Please Enable Recording First");
+            return null;
+        }
         VideoRecorder videoRecorder =
                 recorder.get();
 
@@ -83,6 +92,10 @@ public class RecordingManager extends MediaUtilities {
         }
 
         String videoPath = videoRecorder.stop();
+        if (!checkIfFileExists(videoPath)){
+            log.error("no video file exist, can't stop recording");
+            throw new RuntimeException("File Not Found!");
+        }
         ArtifactRepository.registerVideo(
                 videoPath,
                 Path.of(videoPath)
