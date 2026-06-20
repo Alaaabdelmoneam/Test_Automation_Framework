@@ -2,7 +2,6 @@ package org.blazedemo.utils;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
-import org.blazedemo.utils.datareaders.JsonReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +9,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import static org.apache.commons.io.file.PathUtils.copyDirectory;
 
@@ -130,11 +130,15 @@ public class FileUtilities {
                 Paths.get(destDirectoryPath);
 
         if (Files.exists(previousHistory)) {
-            copyDirectory(previousHistory, newResultsHistory);
+            copyDirectory(previousHistory, newResultsHistory,  StandardCopyOption.REPLACE_EXISTING);
         }
         else {
             log.warn("Source directory does not exist: {}", previousHistory.toAbsolutePath());
             throw new RuntimeException("Source directory does not exist: " + previousHistory.toAbsolutePath());
         }
+    }
+    public static boolean checkIfFileExists(String path){
+        File file = new File(path);
+        return file.exists();
     }
 }
