@@ -2,6 +2,7 @@ package org.blazedemo.drivers;
 
 import org.blazedemo.config.Configuration;
 import org.blazedemo.config.DriverConfiguration;
+import org.blazedemo.customlisteners.PopupHandlingListener;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -12,6 +13,7 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 
 import java.util.Locale;
 import lombok.extern.log4j.Log4j2;
+import org.openqa.selenium.support.events.EventFiringDecorator;
 
 @Log4j2
 public enum WebDriverFactory {
@@ -40,7 +42,12 @@ public enum WebDriverFactory {
     public static WebDriver createDriver(){
         String browserName = DriverConfiguration.browserType();
         try {
-            return valueOf(browserName.toUpperCase(Locale.ROOT)).createDriverInstance();
+            WebDriver webDriver = valueOf(browserName.toUpperCase(Locale.ROOT)).createDriverInstance();
+//            return webDriver;
+            return new EventFiringDecorator(
+                    new PopupHandlingListener())
+                    .decorate(webDriver);
+
         } catch (IllegalArgumentException e) {
             log.error("Unsupported browser: {}", browserName, e);
             throw new IllegalArgumentException(
