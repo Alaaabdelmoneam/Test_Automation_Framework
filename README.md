@@ -1,145 +1,301 @@
-# Test Automation Framework
+# Selenium Test Automation Framework (TAF)
 
-A comprehensive, enterprise-grade **Java-based UI automation framework** built on Selenium, TestNG, and Allure for testing the Automation Exercise application. This framework follows best practices in test automation architecture, reporting, and maintainability.
+<div align="center">
+
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Selenium](https://img.shields.io/badge/Selenium-4.41.0-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
+![TestNG](https://img.shields.io/badge/TestNG-7.11.0-FF6C37?style=for-the-badge)
+![Allure](https://img.shields.io/badge/Allure-2.29.1-brightgreen?style=for-the-badge)
+![Maven](https://img.shields.io/badge/Maven-3.8+-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
+
+**An enterprise-grade, thread-safe UI test automation framework built on Selenium 4 + TestNG + Allure,
+applied to [AutomationExercise.com](https://automationexercise.com/) — a real-world e-commerce web application.**
+
+</div>
 
 ---
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Application Under Test](#application-under-test)
 - [Key Features](#key-features)
-- [Project Structure](#project-structure)
+- [Architecture & Design Patterns](#architecture--design-patterns)
+- [Complete Project Structure](#complete-project-structure)
 - [Technology Stack](#technology-stack)
-- [Prerequisites](#prerequisites)
-- [Installation & Setup](#installation--setup)
-- [Configuration](#configuration)
+- [Configuration Reference](#configuration-reference)
+- [Prerequisites & Installation](#prerequisites--installation)
 - [Running Tests](#running-tests)
-- [Test Organization](#test-organization)
-- [Reporting](#reporting)
-- [Best Practices Implemented](#best-practices-implemented)
-- [Planned Improvements](#planned-improvements)
-- [Contributing](#contributing)
+- [Test Coverage](#test-coverage)
+- [Example Test Cases](#example-test-cases)
+- [Reporting & Artifacts](#reporting--artifacts)
+- [Roadmap](#roadmap)
 
 ---
 
 ## Overview
 
-This framework automates end-to-end UI testing for e-commerce applications. It provides a robust foundation for building scalable, maintainable test suites with comprehensive reporting, video recording, and screenshot capabilities.
+TAF is a **production-quality Selenium framework** designed for scale, maintainability, and reliability. Rather than a bare-bones proof-of-concept, it solves real problems that emerge in enterprise automation:
 
-**Target Application**: Automation Exercise (e-commerce platform)
-**Primary Language**: Java
-**Test Framework**: TestNG
-**Web Driver Library**: Selenium WebDriver 4.41.0
+- **Zombie driver processes** from aborted test runs — solved via JVM Shutdown Hooks
+- **Cross-thread driver contamination** in parallel runs — solved via `ThreadLocal` + `ThreadGuard`
+- **Lost failure context** (screenshots captured after driver quit) — solved via Allure `TestLifecycleListener`
+- **Null recorder references** when video is disabled — solved via the Null Object Pattern
+- **Flaky test noise** in CI pipelines — mitigated via configurable `RetryAnalyzer`
+
+The framework strictly follows the **Page Object Model (POM)** with a **Fluent API**, making test code read like plain English while keeping all driver and locator logic hidden from the test layer.
+
+---
+
+## Application Under Test
+
+Tests run against **[AutomationExercise.com](https://automationexercise.com/)** — a purpose-built e-commerce demo site. The functional test suites cover the full customer journey:
+
+| Module | Tested Scenarios |
+|--------|-----------------|
+| **User Management** | Registration (valid/duplicate), Login (valid/invalid email/invalid password), Logout |
+| **Product Browsing** | Search, Filter by category, Filter by brand, View product details |
+| **Cart Management** | Add to cart, Remove from cart, Quantity updates |
+| **Checkout** | Address verification, Order comment, Place order |
+| **Payment** | Card payment, Order success validation |
+| **End-to-End** | Full customer journey: login → browse → add to cart → checkout → pay |
 
 ---
 
 ## Key Features
 
-### ✅ Core Automation Features
+### ✅ Core Automation
 
-- **Page Object Model (POM)**: Clean separation of page elements and test logic
-- **Multi-browser Support**: Chrome, Firefox, and Edge drivers with factory pattern
-- **WebDriver Management**: Automatic driver initialization and cleanup via lifecycle listeners
-- **Data-Driven Testing**: JSON-based test data readers with support for credentials and registration data
+- **Page Object Model (POM)** — Clean separation of locators, page actions, and test logic.
+- **Fluent / Chained API** — Page methods return the next page object, making tests read like user stories.
+- **Component-Based Pages** — Reusable UI blocks (`NavigationBar`, `ProductGallery`, `CategoryAndBrandSidebar`, `ProductAddedToCartWindow`) are composed into pages via `BasePage`, not inherited.
+- **Multi-Browser Support** — Chrome, Firefox, and Edge via enum-based `OptionsFactory` / `WebDriverFactory`.
+- **Selenium Grid Ready** — Remote execution configured via `seleniumGrid.properties` (hub URL, port, path).
+- **Headless Mode** — Toggle via `DriverOptions.properties` without any code changes.
 
 ### 📊 Reporting & Visualization
 
-- **Allure Reporting**: Beautiful, interactive test reports with detailed step-by-step execution
-- **Video Recording**: Automatic video capture of test execution for failure analysis
-- **Screenshot Capture**: Automatic screenshots on test failures with page title context
-- **Artifact Management**: Centralized management of test artifacts (logs, screenshots, videos)
-- **Environment Information**: Captures browser version, OS, and URL in reports
+- **Allure Reports** — Interactive HTML reports with step-by-step execution breakdowns, severity levels, and epics/features/stories hierarchy.
+- **Environment Card** — Automatically writes browser type, OS, and base URL to the Allure environment widget at suite start (via `AllureLifecycleListener` + `allure-environment-writer`).
+- **Video Recording** — Desktop or application-window capture using FFmpeg via JAVE. Configurable resolution, frame rate, capture mode, and save-on-pass/fail policy.
+- **Screenshot Capture** — Automatic screenshots on test failure, attached directly to the Allure report.
+- **Log Attachments** — Log4j2 execution logs attached to each failing test result in Allure.
+- **Artifact Repository** — `ArtifactRepository` maintains a centralized thread-safe registry of all produced screenshots and videos for the current run.
 
 ### 🔍 Logging & Diagnostics
 
-- **Log4j2 Integration**: Comprehensive logging with configurable levels
-- **Test Execution ID**: Unique execution tracking for troubleshooting
-- **Custom Listeners**: Test lifecycle listeners for setup, teardown, and reporting
+- **Log4j2** — Structured logging to both console and rolling file appenders.
+- **Execution ID** — A unique `yyyy-MM-dd_HH-mm-ss` timestamp is generated at suite start and injected as a JVM system property (`execution.id`), used to name log files, screenshot folders, and video files — eliminating overwrites across parallel runs.
+- **Custom Listeners** — Three specialized TestNG listeners handle the full test lifecycle with zero boilerplate in test classes.
 
 ### 🎯 Advanced Capabilities
 
-- **Custom Annotations**: `@UITest` marker for UI test identification
-- **Allure Annotations**: Epic, Feature, Story, Owner, Severity levels for test organization
-- **Fluent API**: Chainable methods for readable test code
-- **Component-Based Architecture**: Reusable navigation bar and page components
+- **`@UITest` Annotation** — A custom marker interface that the `DriverLifecycleListener` checks at runtime. Only classes/methods annotated with `@UITest` trigger driver initialization, preventing unnecessary browser launches for future API or non-UI tests.
+- **`@APITest` Annotation** — Companion annotation ready for the planned REST Assured integration.
+- **Page Contracts / Interfaces** — `ISignupFlow` interface enforces a consistent signup flow API across pages that participate in the signup sequence.
+- **Retry Analyzer** — `RetryAnalyzer` + `RetryTransformer` for configurable test retry on failure.
+- **Allure Annotations** — `@Epic`, `@Feature`, `@Story`, `@Owner`, `@Severity`, `@Description`, `@Step` used throughout for maximum report expressiveness.
 
 ---
 
-## Project Structure
+## Architecture & Design Patterns
+
+This framework goes significantly beyond a standard POM setup by applying well-known software engineering patterns to solve automation-specific problems:
+
+### 1. Invisible Driver Management
+Test authors **never** instantiate or pass `WebDriver` anywhere. The `DriverLifecycleListener` detects `@UITest`-annotated test instances at `onTestStart` and automatically calls `DriverManager.initDriver()`. Page Objects retrieve the driver via `DriverManager.getDriver()` when they need it. Tests simply call page methods.
 
 ```
-Test_Automation_Framework/
-├── src/
-│   ├── main/
-│   │   └── java/org/blazedemo/
-│   │       ├── annotations/
-│   │       │   └── UITest.java                    # Custom test marker
-│   │       ├── config/
-│   │       │   ├── Configuration.java             # Property file loader
-│   │       │   └── DriverConfiguration.java       # WebDriver settings
-│   │       ├── customlisteners/
-│   │       │   ├── AllureLifecycleListener.java   # Allure test lifecycle
-│   │       │   └── DriverLifecycleListener.java   # WebDriver lifecycle
-│   │       ├── drivers/
-│   │       │   ├── DriverManager.java             # Driver pool management
-│   │       │   ├── DriverFactory.java             # Driver factory pattern
-│   │       │   └── WebDriverFactory.java          # Browser-specific drivers
-│   │       ├── media/
-│   │       │   ├── ScreenshotManager.java         # Screenshot utilities
-│   │       │   ├── videorecorder/
-│   │       │   │   └── RecordingManager.java      # Video recording
-│   │       │   └── ArtifactRepository.java        # Artifact tracking
-│   │       ├── pages/
-│   │       │   ├── BasePage.java                  # Base page class
-│   │       │   ├── HomePage.java                  # Home page object
-│   │       │   ├── SignUpAndLoginPage.java        # Auth page object
-│   │       │   ├── CheckoutPage.java              # Checkout page object
-│   │       │   ├── ProdcutsPage.java              # Products page object
-│   │       │   ├── CartPage.java                  # Shopping cart page
-│   │       │   ├── TestCasesPage.java             # Test cases page
-│   │       │   ├── ContactUSPage.java             # Contact page
-│   │       │   ├── components/
-│   │       │   │   ├── NavigationBar.java         # Shared nav component
-│   │       │   │   └── ProductGallery.java        # Product display component
-│   │       │   ├── contracts/
-│   │       │   │   └── ISignupFlow.java           # Signup behavior contract
-│   │       │   └── dto/
-│   │       │       ├── LoginCredentials.java      # Login data model
-│   │       │       └── RegistrationData.java      # Registration data model
-│   │       ├── utils/
-│   │       │   ├── actions/
-│   │       │   │   ├── BrowserActions.java        # Browser-level actions
-│   │       │   │   └── ElementsActions.java       # Element-level actions
-│   │       │   ├── datareaders/
-│   │       │   │   └── JsonReader.java            # JSON test data loader
-│   │       │   ├── reporting/
-│   │       │   │   └── ReportingManager.java      # Report generation
-│   │       │   ├── TimeStampCreator.java          # Timestamp utilities
-│   │       │   └── OSUtils.java                   # OS detection
-│   │
-│   └── test/
-│       ├── java/org/blazedemo/
-│       │   └── tests/
-│       │       ├── basetest/
-│       │       │   └── BaseTest.java              # Test base class
-│       │       └── ui/
-│       │           ├── RegistrationTestcases.java # Registration tests
-│       │           ├── LoginTestcases.java        # Login tests
-│       │           ├── ProductsTestcases.java     # Product tests
-│       │           ├── checkoutTestcases.java     # Checkout tests
-│       │           └── E2ETests.java              # End-to-end scenarios
-│       └── resources/
-│           ├── testdata/
-│           │   ├── login_data.json               # Login test data
-│           │   └── registration_data.json        # Registration test data
-│           └── config/
-│               └── environment.properties         # Environment config
-├── config/
-│   └── environment.properties                    # Configuration file
-├── test-output/                                  # Test execution output
-├── allure-results/                               # Allure report data
-├── pom.xml                                       # Maven configuration
-└── README.md                                     # This file
+@UITest (on BaseTest) → DriverLifecycleListener.onTestStart() → DriverManager.initDriver()
+                                                               → WebDriverFactory.createDriver()
+                                                               → OptionsFactory.CHROME.createOptions()
+```
+
+### 2. ThreadLocal + ThreadGuard — Race-Condition-Proof Drivers
+`DriverManager` stores each driver instance in a `ThreadLocal<WebDriver>`. Every stored driver is additionally wrapped with `ThreadGuard.protect()`, which throws an exception if a driver is accessed from a thread that didn't create it — making cross-thread contamination physically impossible.
+
+```java
+driverThreadLocal.set(ThreadGuard.protect(driver));  // stored per-thread + protected
+```
+
+### 3. Fail-Safe Shutdown Hook
+Forceful test abortion (IDE stop button, CI kill signal) normally leaves `chromedriver.exe` processes running. The framework registers a JVM shutdown hook at `onExecutionStart` that iterates all `activeDrivers` and quits each one:
+
+```java
+Runtime.getRuntime().addShutdownHook(new Thread(DriverManager::stopAllDrivers));
+```
+`stopAllDrivers()` is also smart enough to unwrap `ThreadGuard` proxies before calling `.quit()`.
+
+### 4. Null Object Pattern — Video Recording
+When `video_recording=false`, `RecordingManager.startRecording()` doesn't store `null` — it stores a `NoOpVideoRecorder` instead. Every subsequent `stop()` / `forceStop()` call simply does nothing, eliminating all `if (recorder != null)` guards in the teardown path.
+
+```java
+// No null checks needed anywhere in teardown:
+recorder.set(new NoOpVideoRecorder());
+```
+
+### 5. Context-Aware Allure Attachment (beforeTestStop Hook)
+The most subtle pattern: screenshots and logs must be attached to Allure **before** the driver is quit, otherwise there is no browser context to capture from. `AllureLifecycleListener` implements Allure's `TestLifecycleListener` and overrides `beforeTestStop(TestResult result)`. This fires **before** the TestNG `@AfterMethod` that quits the driver, guaranteeing the capture window is always open.
+
+### 6. Abstracted Actions Layer
+Raw Selenium and `WebDriverWait` calls are **never** written directly in Page Objects. Instead, all element interactions are centralized in static utility classes:
+
+| Class | Responsibility |
+|-------|---------------|
+| `ElementsActions` | click, sendText, getText, hover, scroll (JS + Selenium), upload, dropdown, isDisplayed |
+| `BrowserActions` | navigate to URL |
+| `AlertActions` | accept, dismiss, get alert text |
+
+Every action internally uses a `WebDriverWait` configured from `waits.properties` (timeout, polling interval, ignored exceptions list), so flakiness from timing is handled in one place.
+
+### 7. Enum-Based Driver Factory
+Browser creation is delegated through two enum layers:
+
+- `WebDriverFactory` (enum) — One constant per browser; each overrides `createDriver()` to return the appropriate `WebDriver` subtype.
+- `OptionsFactory` (enum) — One constant per browser; each overrides `createOptions()` to build browser-specific `Options` objects, including headless mode from config.
+
+Adding a new browser capability is a single-file change in the relevant `OptionsFactory` constant.
+
+### 8. Guaranteed Unique Artifacts
+`TimeStampCreator.getCurrentTime()` produces a `yyyyMMdd_HHmmssSSS` string that is used as:
+- The registration email suffix in dynamic test data (prevents duplicate account errors)
+- The filename prefix for screenshots and video recordings
+- The Log4j2 `execution.id` system property, ensuring log files from different runs never collide
+
+---
+
+## Complete Project Structure
+
+```text
+TAF/
+├── pom.xml                                    # Maven build — deps, Surefire + AspectJ config, Shade plugin
+├── release_notes.md                           # Versioned changelog
+│
+└── src/
+    ├── main/
+    │   ├── java/org/blazedemo/
+    │   │   ├── annotations/
+    │   │   │   ├── UITest.java                # Runtime marker — triggers driver lifecycle
+    │   │   │   └── APITest.java               # Runtime marker — future API test routing
+    │   │   │
+    │   │   ├── config/
+    │   │   │   ├── Configuration.java         # Core properties loader (validated, throws on missing keys)
+    │   │   │   ├── DriverConfiguration.java   # browser_type, headless_mode, execution_mode accessors
+    │   │   │   ├── EnvironmentConfiguration.java # BaseURL, Port accessors
+    │   │   │   ├── ScreenshotConfiguration.java  # Screenshot format config
+    │   │   │   ├── VideoRecordingConfiguration.java # Video enable/save policy/resolution accessors
+    │   │   │   └── WaitConfiguration.java     # Timeout, polling interval, ignored exceptions
+    │   │   │
+    │   │   ├── customlisteners/
+    │   │   │   ├── DriverLifecycleListener.java  # ITestListener + IExecutionListener: init/quit + shutdown hook
+    │   │   │   ├── AllureLifecycleListener.java  # TestLifecycleListener + ISuiteListener: env card + attachments
+    │   │   │   ├── RecordingListener.java         # ITestListener: start/stop video per test
+    │   │   │   ├── SuiteLevelListener.java        # ISuiteListener: cleanup recorders + auto-generate report
+    │   │   │   ├── RetryAnalyzer.java             # IRetryAnalyzer: retry failed tests up to N times
+    │   │   │   └── RetryTransformer.java          # IAnnotationTransformer: applies RetryAnalyzer globally
+    │   │   │
+    │   │   ├── drivers/
+    │   │   │   ├── DriverManager.java         # ThreadLocal store + ThreadGuard + activeDrivers registry
+    │   │   │   ├── WebDriverFactory.java      # Enum: CHROME/EDGE/FIREFOX driver creation
+    │   │   │   ├── OptionsFactory.java        # Enum: CHROME/EDGE/FIREFOX options with headless support
+    │   │   │   └── IOptionsFactory.java       # Interface: planned refactor target for OptionsFactory enum
+    │   │   │
+    │   │   ├── media/
+    │   │   │   ├── MediaUtilities.java        # Base: unique file naming, directory creation helpers
+    │   │   │   ├── ScreenshotManager.java     # Capture + save screenshots; attach to Allure
+    │   │   │   └── videorecorder/
+    │   │   │       ├── VideoRecorder.java     # Interface: start(path) / stop() contract
+    │   │   │       ├── FfmpegVideoRecorder.java  # FFmpeg/JAVE implementation
+    │   │   │       ├── NoOpVideoRecorder.java    # Null Object: safe no-op when recording disabled
+    │   │   │       ├── RecorderType.java         # Enum: FFMPEG recorder types
+    │   │   │       └── RecordingManager.java     # ThreadLocal recorder + policy (save on pass/fail)
+    │   │   │
+    │   │   ├── pages/
+    │   │   │   ├── BasePage.java              # Abstract: exposes NavigationBar; declares navigate()
+    │   │   │   ├── HomePage.java              # Home page PO — product gallery, cart interactions
+    │   │   │   ├── SignUpAndLoginPage.java     # Login + initial signup form PO
+    │   │   │   ├── SignUpPage.java             # Full registration form PO
+    │   │   │   ├── ProdcutsPage.java          # Products listing PO — search, filter, add to cart
+    │   │   │   ├── ProductDetails.java        # Product details PO
+    │   │   │   ├── CartPage.java              # Cart PO — view, remove items, proceed to checkout
+    │   │   │   ├── CheckoutPage.java          # Checkout PO — address verification, order comment
+    │   │   │   ├── PaymentPage.java           # Payment form PO — card details, submit
+    │   │   │   ├── ContactUSPage.java         # Contact Us stub PO
+    │   │   │   ├── TestCasesPage.java         # Test Cases stub PO
+    │   │   │   ├── APITestingPage.java        # API Testing stub PO
+    │   │   │   ├── ExampleModel.java          # Template/example PO
+    │   │   │   │
+    │   │   │   ├── components/
+    │   │   │   │   ├── NavigationBar.java             # Site-wide nav — all nav button actions + active-state check
+    │   │   │   │   ├── ProductGallery.java            # Product card grid — add/view/search/filter
+    │   │   │   │   ├── CategoryAndBrandSidebar.java   # Sidebar filter component
+    │   │   │   │   └── ProductAddedToCartWindow.java  # Modal after adding product
+    │   │   │   │
+    │   │   │   ├── contracts/
+    │   │   │   │   └── ISignupFlow.java       # Interface enforcing signup(RegistrationData) across pages
+    │   │   │   │
+    │   │   │   └── dto/
+    │   │   │       ├── LoginCredentials.java  # DTO: email + password (Jackson + Lombok)
+    │   │   │       └── RegistrationData.java  # DTO: all 19 registration fields (Jackson + Lombok)
+    │   │   │
+    │   │   └── utils/
+    │   │       ├── TimeStampCreator.java      # Unique timestamp generator for artifact naming
+    │   │       ├── FileUtilities.java         # File copy, delete, exists checks
+    │   │       ├── LoggerManager.java         # Log4j2 logger factory wrapper
+    │   │       ├── OSUtils.java               # OS detection (WINDOWS / LINUX / MAC)
+    │   │       ├── TerminalUtils.java         # Shell command execution helper
+    │   │       ├── TestCaseStatus.java        # Enum: PASSED / FAILED / SKIPPED
+    │   │       │
+    │   │       ├── actions/
+    │   │       │   ├── BaseAction.java        # Builds WebDriverWait from WaitConfiguration
+    │   │       │   ├── ElementsActions.java   # click, sendText, getText, hover, scroll, upload, dropdown
+    │   │       │   ├── BrowserActions.java    # navigateTo(url)
+    │   │       │   └── AlertActions.java      # accept, dismiss, getText for browser alerts
+    │   │       │
+    │   │       ├── assertions/
+    │   │       │   └── HardAssertions.java    # TestNG Assert wrappers with logging
+    │   │       │
+    │   │       ├── datareaders/
+    │   │       │   ├── JsonReader.java        # Jackson-based: deserialize JSON to DTO / get single property
+    │   │       │   └── PropertiesReader.java  # Properties file reader with classpath support
+    │   │       │
+    │   │       └── reporting/
+    │   │           ├── ArtifactRepository.java   # Thread-safe registry for produced video/screenshot paths
+    │   │           └── ReportingManager.java      # Collects Allure attachments; triggers report generation
+    │   │
+    │   └── resources/
+    │       ├── META-INF/services/             # SPI bindings for Allure listeners (auto-discovery)
+    │       ├── log4j2.properties              # Console + file appenders; execution.id in filename
+    │       └── config/
+    │           ├── DriverOptions.properties   # browser_type, headless_mode, execution_mode, window_maximize
+    │           ├── environment.properties     # BaseURL (automationexercise.com), Port, apiEndpoint
+    │           ├── waits.properties           # timeout_seconds, polling_interval_millis, ignored_exceptions
+    │           ├── video.properties           # recording toggle, output dir, resolution, capture mode, policy
+    │           ├── screenshot.properties      # Screenshot output format
+    │           ├── seleniumGrid.properties    # remoteHost, remotePort, hubPath for Grid execution
+    │           └── db.properties             # Database connection placeholder (future use)
+    │
+    └── test/
+        ├── java/org/blazedemo/tests/
+        │   ├── basetest/
+        │   │   └── BaseTest.java              # @UITest + sets execution.id; @AfterMethod cleanup
+        │   ├── ui/
+        │   │   ├── LoginTestcases.java        # 3 tests: valid login, invalid email, invalid password
+        │   │   ├── RegistrationTestcases.java # 2 tests: valid registration, duplicate account
+        │   │   ├── ProductsTestcases.java     # 11 tests: add, view, search, filter by category/brand
+        │   │   ├── CartTestcases.java         # Cart-focused test cases
+        │   │   ├── checkoutTestcases.java     # Checkout + address verification test
+        │   │   ├── productDetailsTestcases.java # Product detail page tests
+        │   │   └── E2ETests.java             # Full journey: login → cart → checkout → pay
+        │   └── api/                           # Placeholder for future REST Assured API tests
+        │
+        └── resources/
+            ├── allure.properties              # Allure results directory configuration
+            └── testdata/
+                ├── registered_user.json       # Existing user credentials + full profile data
+                ├── valid_login_credentials.json # Login-only credentials
+                ├── payment.json               # Card details for payment tests
+                └── product_details.json       # Product data for detail page tests
 ```
 
 ---
@@ -148,479 +304,339 @@ Test_Automation_Framework/
 
 | Component | Version | Purpose |
 |-----------|---------|---------|
-| **Java** | 21 | Programming language |
+| **Java** | 21 | Language — records, sealed classes, text blocks ready |
 | **Selenium WebDriver** | 4.41.0 | Browser automation |
-| **TestNG** | 7.11.0 | Test framework & execution |
-| **Allure** | 2.29.1 | Reporting & visualization |
-| **Log4j2** | 2.25.4 | Logging framework |
-| **Lombok** | 1.18.46 | Code generation (annotations) |
-| **Jackson** | 2.17.0 | JSON processing |
-| **AspectJ** | 1.9.25.1 | AOP weaving for Allure |
-| **JAVE** | 3.5.0 | Video processing |
-| **Commons IO** | 2.22.0 | File utilities |
+| **TestNG** | 7.11.0 | Test runner, parallel execution, listeners |
+| **Allure TestNG** | 2.29.1 | Interactive HTML reporting |
+| **Log4j2** | 2.25.4 | Structured logging (console + rolling file) |
+| **Lombok** | 1.18.46 | `@Getter`, `@Setter`, `@Log4j2` to eliminate boilerplate |
+| **Jackson Databind** | 2.17.0 | JSON test data deserialization to DTOs |
+| **AspectJ Weaver** | 1.9.25.1 | AOP weaving required by Allure `@Step` instrumentation |
+| **JAVE (ws.schild)** | 3.5.0 | FFmpeg wrapper for cross-platform video recording |
+| **video-recorder-testng** | 2.0 | TestNG video recording support |
+| **Commons IO** | 2.22.0 | File operations (copy, delete, path utilities) |
+| **allure-environment-writer** | 1.0.0 | Write environment variables to Allure environment widget |
+| **Maven Surefire** | 3.5.5 | Test execution plugin with AspectJ agent configuration |
+| **Maven Shade** | 3.5.0 | Uber-JAR with `ServicesResourceTransformer` to merge SPI descriptors |
 
 ---
 
-## Prerequisites
+## Configuration Reference
 
-Before setting up the framework, ensure you have:
+All framework behavior is controlled through property files in `src/main/resources/config/`. No code changes are needed for environment or browser switching.
 
-- **Java Development Kit (JDK)** 21 or higher installed
-- **Maven** 3.8.0 or higher
-- **Git** for version control
-- One or more web browsers:
-  - Google Chrome (latest)
-  - Firefox (latest)
-  - Microsoft Edge (latest)
-- **WebDriver binaries** (automatically managed by Selenium 4)
-
-### Verify Installation
-
-```bash
-java -version
-mvn -version
-```
-
----
-
-## Installation & Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/Alaaabdelmoneam/Test_Automation_Framework.git
-cd Test_Automation_Framework
-```
-
-### 2. Install Dependencies
-
-```bash
-mvn clean install
-```
-
-Maven will automatically download all required dependencies defined in `pom.xml`.
-
-### 3. Verify Installation
-
-```bash
-mvn verify
-```
-
-### 4. Optional: IDE Setup (IntelliJ IDEA or Eclipse)
-
-**IntelliJ IDEA:**
-1. Open the project folder
-2. Go to `File → Open` and select the project
-3. IDE will automatically detect Maven structure
-4. Go to `File → Project Structure → Project → SDK` and select Java 21
-
-**Eclipse:**
-1. Right-click → `Import → Maven → Existing Maven Projects`
-2. Select the project folder
-3. Eclipse will configure the project automatically
-
----
-
-## Configuration
-
-### Environment Configuration
-
-Edit `config/environment.properties` to configure your test environment:
-
+### `DriverOptions.properties`
 ```properties
-# Base URL
-BaseURL=https://automationexercise.com
-
-# Browser Configuration
-browser=Chrome              # Options: Chrome, Firefox, Edge
-headless=false             # Run in headless mode: true/false
-implicitWait=10            # Implicit wait in seconds
-pageLoadTimeout=30         # Page load timeout in seconds
-
-# Allure Reporting
-allure.results.directory=allure-results
-allure.report.directory=allure-report
+browser_type=chrome          # chrome | edge | firefox
+headless_mode=false          # true | false
+execution_mode=local         # local | remote (Selenium Grid)
+window_maximize=true         # maximize browser on start
+url=http://localhost:4444/wd/hub  # Grid hub URL (used when execution_mode=remote)
+block_notification_requests=true  # suppress browser push notification prompts
 ```
 
-### Driver Configuration
+### `environment.properties`
+```properties
+environment=local
+BaseURL=https://automationexercise.com/
+Port=8080
+apiEndpoint=http://localhost:8080/api
+databaseUrl=jdbc:mysql://localhost:3306/mydb
+```
 
-Browser-specific options are managed in `WebDriverFactory.java`:
+### `waits.properties`
+```properties
+polling_interval_millis=500
+timeout_seconds=10
+ignored_exceptions=org.openqa.selenium.NoSuchElementException,\
+                   org.openqa.selenium.StaleElementReferenceException,\
+                   org.openqa.selenium.ElementClickInterceptedException
+custom_timeout_message=Element was not found within the specified timeout.
+```
 
-- **Chrome**: Customizable options including headless mode, user data directory
-- **Firefox**: Profile-based configuration with custom preferences
-- **Edge**: Similar to Chrome with Chromium-based options
+### `video.properties`
+```properties
+video_recording=false        # true | false — master toggle
+video_output_directory=videos
+save_record_on_failures=true
+save_record_on_success=true
+delete_if_test_passed=true   # overrides save_record_on_success if true
+capture_mode=desktop         # desktop | application
+window_title="Google Chrome" # used when capture_mode=application
+offset_x=0
+offset_y=0
+video_size=1920x1080
+frame_rate=10
+extension=.mp4
+```
 
-### Log Configuration
+### `seleniumGrid.properties`
+```properties
+remoteHost=http://localhost
+remotePort=4444
+hubPath=/wd/hub
+```
 
-Logging is configured via Log4j2 properties. Logs include:
-- Console output for immediate feedback
-- File-based logs in the `logs/` directory for detailed analysis
-- Test execution ID for correlation
+---
+
+## Prerequisites & Installation
+
+### Requirements
+- **JDK 21+** — [Download from Adoptium](https://adoptium.net/)
+- **Maven 3.8+** — must be on your system `PATH`
+- **A browser installed** — Chrome, Edge, or Firefox (Selenium Manager handles driver binaries automatically in Selenium 4)
+- **FFmpeg** — only required when `video_recording=true`
+
+### Setup
+
+```bash
+# 1. Clone the repository
+git clone <repository_url>
+cd TAF
+
+# 2. Install dependencies (skip tests on first install)
+mvn clean install -DskipTests
+
+# 3. Verify your browser choice in config
+# src/main/resources/config/DriverOptions.properties
+# browser_type=chrome
+```
 
 ---
 
 ## Running Tests
 
-### Run All Tests
-
+### Full Suite
 ```bash
 mvn clean test
 ```
 
-### Run Specific Test Class
-
+### Single Test Class
 ```bash
-mvn clean test -Dtest=RegistrationTestcases
+mvn clean test -Dtest=LoginTestcases
+mvn clean test -Dtest=ProductsTestcases
+mvn clean test -Dtest=E2ETests
 ```
 
-### Run Tests by Tag/Feature
-
+### Headless Mode (no browser window)
+Edit `src/main/resources/config/DriverOptions.properties`:
+```properties
+headless_mode=true
+```
+Then run normally:
 ```bash
-mvn clean test -Dgroups=smoke
+mvn clean test
 ```
 
-### Run Tests with Specific Browser
-
+### Remote Execution via Selenium Grid
+```properties
+# DriverOptions.properties
+execution_mode=remote
+url=http://<grid-hub-host>:4444/wd/hub
+```
 ```bash
-mvn clean test -Dbrowser=Firefox
+mvn clean test
 ```
 
-### Run Tests in Headless Mode
-
+### Generate & View Allure Report
 ```bash
-mvn clean test -Dheadless=true
-```
+# Serve the interactive report (starts a local server):
+mvn allure:serve
 
-### Run Tests in Parallel
-
-Configure in `pom.xml` surefire plugin:
-```xml
-<parallel>methods</parallel>
-<threadCount>4</threadCount>
-```
-
----
-
-## Test Organization
-
-### Test Classes
-
-| Class | Scope | Tests |
-|-------|-------|-------|
-| **RegistrationTestcases** | User registration flow | Valid/Invalid registration |
-| **LoginTestcases** | User authentication | Valid/Invalid credentials |
-| **ProductsTestcases** | Product management | Browse, search, filter |
-| **checkoutTestcases** | E-commerce checkout | Cart, payment, order |
-| **E2ETests** | End-to-end scenarios | Complete user journeys |
-
-### Test Annotations
-
-All tests use Allure annotations for categorization:
-
-```java
-@Epic("Automation Exercise")      // High-level feature group
-@Feature("User Management")        // Feature category
-@Story("User Login")               // Specific scenario
-@Owner("Alaa")                     // Test owner
-@Severity(SeverityLevel.BLOCKER)  // Test criticality
-@Description("Verify user can login") // Detailed description
-@Test
-public void testValidLogin() { ... }
-```
-
-### Page Object Pattern
-
-Example page class structure:
-
-```java
-@Log4j2
-public class HomePage extends BasePage {
-    
-    // Locators
-    private static final By PRODUCT_NAME = By.xpath("//p[text()='%s']");
-    private static final By ADD_TO_CART = By.xpath("//button[contains(@class, 'add-to-cart')]");
-    
-    // Page Actions
-    @Step("Navigate to home page")
-    public HomePage navigate() { ... }
-    
-    @Step("Add {productName} to cart")
-    public HomePage addProductToCart(String productName) { ... }
-    
-    // Validations
-    @Step("Verify on home page")
-    public HomePage verifyOnHomePage() { ... }
-}
-```
-
----
-
-## Reporting
-
-### Allure Reports
-
-#### Generate Report
-
-```bash
+# Or generate static HTML to allure-report/ directory:
 mvn allure:report
 ```
 
-#### Open Report
+---
 
-```bash
-mvn allure:serve
-```
+## Test Coverage
 
-This opens an interactive HTML report in your default browser showing:
-- Test execution timeline
-- Pass/fail statistics
-- Detailed test steps
-- Screenshots and videos on failures
-- Environment information
-- Severity and category breakdowns
+| Test Class | # Tests | Feature Area |
+|------------|---------|-------------|
+| `LoginTestcases` | 3 | Valid login, invalid email, invalid password |
+| `RegistrationTestcases` | 2 | New account creation, duplicate email rejection |
+| `ProductsTestcases` | 11 | Add to cart, view, search, filter by category/brand (valid + invalid cases) |
+| `CartTestcases` | — | Cart item management |
+| `checkoutTestcases` | 1 | Full checkout with address data verification |
+| `productDetailsTestcases` | — | Product details page assertions |
+| `E2ETests` | 1 | Login → browse → add to cart → remove item → checkout → payment → success |
+| **Total** | **~20** | **Full customer journey coverage** |
 
-### Report Contents
-
-- **Test Results**: Pass/fail status with duration
-- **Steps**: Detailed step-by-step execution trace
-- **Attachments**: Screenshots, videos, logs
-- **History**: Trend analysis across multiple runs
-- **Categories**: Tests grouped by Epic, Feature, Story
-
-### Video Recording
-
-Videos are automatically captured during test execution in:
-```
-target/video-recordings/
-```
-
-Successful video files are attached to Allure reports on test failures.
-
-### Artifact Management
-
-Screenshots and logs are managed through `ArtifactRepository.java`:
-- Named with test name and page title
-- Timestamped for uniqueness
-- Organized in dedicated directories
-- Automatically attached to Allure reports
+Each test class is annotated with `@Epic`, `@Feature`, `@Story`, and `@Severity`, giving the Allure report a full business-readable hierarchy.
 
 ---
 
-## Best Practices Implemented
+## Example Test Cases
 
-### 1. **Page Object Model (POM)**
-   - Encapsulates page elements and interactions
-   - Reduces code duplication
-   - Improves maintainability
-
-### 2. **Separation of Concerns**
-   - Page classes handle UI interactions
-   - Action utility classes handle common operations
-   - Data readers manage test data
-   - Listeners handle lifecycle events
-
-### 3. **DRY Principle (Don't Repeat Yourself)**
-   - Shared components (NavigationBar, ProductGallery)
-   - Common actions in utility classes
-   - Base test class for setup/teardown
-
-### 4. **Fluent API**
-   - Chainable methods for readable tests
-   - Example: `page.navigate().addProduct().verifyCart()`
-
-### 5. **Comprehensive Logging**
-   - Log4j2 for structured logging
-   - Each test has unique execution ID
-   - Detailed step-level logging
-
-### 6. **Exception Handling**
-   - Custom exceptions for test-specific errors
-   - Graceful failure handling with informative messages
-   - Automatic cleanup on failures
-
-### 7. **Test Data Management**
-   - JSON-based external test data
-   - DTOs for type-safe data handling
-   - Support for complex registration flows
-
-### 8. **Listener-Based Lifecycle**
-   - TestNG listeners for test lifecycle events
-   - Automatic WebDriver initialization/cleanup
-   - Automatic screenshot/video on failures
-
-### 9. **Cross-Browser Compatibility**
-   - Factory pattern for driver instantiation
-   - Consistent behavior across browsers
-   - Easy to add new browsers
-
-### 10. **Allure Integration**
-   - Rich test categorization
-   - Detailed step tracking
-   - Visual reporting with artifacts
-
----
-
-## Planned Improvements
-
-### 🚀 Architecture Enhancements
-
-1. **Driver Factory Refactoring**
-   - Replace `WebDriverFactory` enum with separate `IOptionsFactory` implementations
-   - Each browser type gets dedicated option factory class
-   - Removes explicit casting and improves extensibility
-   - **Status**: Noted in Readme.md (To-Do)
-
-### 📈 Framework Expansion
-
-2. **API Testing Support**
-   - Integration with REST Assured for API testing
-   - Hybrid UI + API automation capabilities
-   - Request/response logging in reports
-
-3. **Mobile Automation**
-   - Appium integration for mobile app testing
-   - Support for iOS and Android platforms
-
-4. **Advanced Data Management**
-   - Database integration for test data setup/cleanup
-   - Environment-specific data configurations
-
-### 🔧 Quality Improvements
-
-5. **Extended Reporting**
-   - Custom Allure plugins for additional metrics
-   - Test execution trend analysis
-   - Performance benchmarking
-
-6. **Performance Optimization**
-   - Parallel test execution enhancements
-   - Test result caching mechanisms
-   - Smart retry logic for flaky tests
-
-7. **Documentation**
-   - Detailed step-by-step tutorials
-   - Video walkthroughs
-   - Test case catalog
-
-### 🛡️ Stability & Reliability
-
-8. **Resilience Features**
-   - Automatic retry logic for transient failures
-   - Element wait strategies (explicit waits)
-   - Exception recovery mechanisms
-
----
-
-## Example Test Case
+### Fluent E2E Test
+The full customer journey in a single readable chain — no driver references, no explicit waits:
 
 ```java
-@Log4j2
 @Epic("Automation Exercise")
-@Feature("User Management")
-@Story("User Registration")
-@Owner("Alaa")
-public class RegistrationTestcases extends BaseTest {
+@Feature("End-to-End Test")
+@Story("System Test")
+public class E2ETests {
 
-    @Description("Verify user can register with new account")
+    @Description("Testing Full E2E Scenario")
     @Test
-    public void testValidRegistration() {
-        // Arrange
-        RegistrationData registrationData = new RegistrationData(
-            "Mr.",
-            "Alaa",
-            "Alaa" + TimeStampCreator.getCurrentTime() + "@gmail.com",
-            "password123",
-            // ... other fields
-        );
+    public void validE2EScenario() {
+        LoginCredentials credentials = getTestDataFromClasspath(
+                "testdata/registered_user.json", LoginCredentials.class);
 
-        // Act & Assert
-        new SignUpAndLoginPage()
-            .navigate()
-            .signup(registrationData)
-            .validateSignupPageRedirection()
-            .clickOnContinueButton()
-            .verifyOnHomePage();
+        new SignUpAndLoginPage().navigate()
+                .login(credentials)
+                .validateLoginSuccessfulRedirection()
+                .verifyOnHomePage()
+                .addProductToCart("Blue Top")
+                .validateProductAddedToCart()
+                .continueShopping()
+                .addProductToCart("Men Tshirt")
+                .viewCart()
+                .removeProductFromCart("Blue Top")
+                .checkout()
+                .writeCommentOnOrder("Order comment")
+                .placeOrder()
+                .pay(nameOnCard, cardNumber, cvc, expiryMonth, expiryYear)
+                .validateOrderSuccessful()
+                .continueToHomePage();
     }
 }
 ```
 
----
+### Data-Driven Registration with DTO
+Dynamic test data built programmatically with a unique email, or loaded from JSON:
 
-## Troubleshooting
+```java
+// Inline construction with unique timestamp-based email
+RegistrationData data = new RegistrationData(
+        "Mr.", "Alaa",
+        "user" + TimeStampCreator.getCurrentTime() + "@gmail.com",
+        "password123", "19", "February", "2002",
+        "Alaa", "Abdelmoneam", "Tesla",
+        "123 Main St", "Suite 4", "India", "Mombay", "Mumbai",
+        "400001", "9876543210", true, true
+);
 
-### Common Issues
+// Or loaded entirely from JSON:
+RegistrationData data = getTestDataFromClasspath(
+        "testdata/registered_user.json", RegistrationData.class);
 
-| Issue | Solution |
-|-------|----------|
-| WebDriver not found | Ensure Java 21 is installed; run `mvn clean install` |
-| Browser not launching | Check browser installation; verify browser path in config |
-| Allure reports empty | Ensure `aspectjweaver` is properly loaded; check pom.xml |
-| Screenshot/Video missing | Verify disk space; check artifact directory permissions |
-| Tests timeout | Increase wait times in `environment.properties` |
+new SignUpAndLoginPage().navigate()
+        .signup(data)
+        .validateSignupPageRedirection()
+        .signup(data)
+        .clickOnContinueButton()
+        .verifyOnHomePage();
+```
 
-### Debug Mode
+### Negative Test — Invalid Login
+```java
+@Test
+public void invalidLoginPassword() {
+    LoginCredentials credentials = getTestDataFromClasspath(
+            "testdata/registered_user.json", LoginCredentials.class);
 
-Enable detailed logging by modifying Log4j2 configuration:
+    credentials.setPassword("wrong" + TimeStampCreator.getCurrentTime());
 
-```xml
-<Logger name="org.blazedemo" level="DEBUG" />
+    new SignUpAndLoginPage()
+            .navigate()
+            .login(credentials)
+            .validateNoRedirectionHappened()
+            .verifyInvalidLoginErrorAppears();
+}
+```
+
+### Product Filtering with Category + Brand
+```java
+@Test
+public void filterProductsByValidCategory() {
+    new ProdcutsPage().navigate().filterByCategory("Men", "Tshirts");
+}
+
+@Test
+public void filterProductsByValidBrand() {
+    new ProdcutsPage().navigate().filterByBrand("Polo");
+}
 ```
 
 ---
 
-## Contributing
+## Reporting & Artifacts
 
-1. **Create a Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+### Allure Report Structure
+The Allure report is organized using a three-level hierarchy applied to all test classes:
 
-2. **Follow Code Standards**
-   - Use meaningful variable names
-   - Add Allure annotations to tests
-   - Include Javadoc for public methods
-   - Follow existing code style
+```
+Epic: Automation Exercise
+├── Feature: User Management
+│   ├── Story: User Login      → LoginTestcases
+│   └── Story: User Registration → RegistrationTestcases
+├── Feature: Cart Management
+│   └── Story: Checkout        → checkoutTestcases
+└── Feature: End-to-End Test
+    └── Story: System Test     → E2ETests
+```
 
-3. **Test Your Changes**
-   ```bash
-   mvn clean test
-   ```
+### What's Attached to Each Test Result
+- **Steps** — Every page method annotated with `@Step("...")` appears as a drillable step in Allure
+- **Screenshot** — Captured on test failure via `AllureLifecycleListener.beforeTestStop()`
+- **Log file** — The Log4j2 execution log for the current run ID
+- **Video** — MP4 recording of the test (if `video_recording=true`)
+- **Environment card** — Browser, OS, and target URL shown on the report overview page
 
-4. **Commit with Clear Messages**
-   ```bash
-   git commit -m "Add new test for user profile feature"
-   ```
-
-5. **Push and Create Pull Request**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
----
-
-## License
-
-This project is part of the Automation Exercise and follows its licensing terms.
-
----
-
-## Contact & Support
-
-- **Author**: Alaa Abdelmoneam
-- **Repository**: [GitHub - Test_Automation_Framework](https://github.com/Alaaabdelmoneam/Test_Automation_Framework)
-- **Issues**: Report via GitHub Issues
+### Artifact Lifecycle
+```
+Test Start   → RecordingListener starts FFmpeg recording
+Test Running → AllureLifecycleListener.beforeTestStop() fires FIRST
+             → Screenshots + logs attached to Allure result
+             → DriverLifecycleListener.onTestFailure() quits driver AFTER
+Test End     → RecordingListener stops recording
+             → applyRecordingPolicy() decides to keep or delete video
+             → ArtifactRepository registers final paths
+Suite End    → SuiteLevelListener.onFinish() cleans up stray recorders
+             → Optionally auto-generates the HTML report
+```
 
 ---
 
-## Additional Resources
+## Roadmap
 
-- [Selenium Documentation](https://www.selenium.dev/documentation/)
-- [TestNG Documentation](https://testng.org/doc/)
-- [Allure Documentation](https://docs.qameta.io/allure/)
-- [Log4j2 Guide](https://logging.apache.org/log4j/2.x/)
-- [Automation Exercise Website](https://www.automationexercise.com/)
+The following improvements are planned to advance this framework further:
+
+1. **Driver Factory Refactoring**
+   Replace the `OptionsFactory` enum with dedicated `IOptionsFactory` implementing classes (e.g., `ChromeOptionsFactory`). The `IOptionsFactory.java` interface stub already exists. This removes casting and makes each browser config independently testable.
+
+2. **Selenium Grid / Docker Integration**
+   Add a `docker-compose.yml` with a Selenium Grid (Hub + Chrome/Firefox Nodes) and integrate `Testcontainers` to spin up disposable browser containers dynamically — eliminating local browser installation requirements in CI.
+
+3. **CI/CD Pipeline**
+   Add `.github/workflows/maven.yml` to run the full suite on every Pull Request, publish Allure reports as GitHub Pages or a workflow artifact.
+
+4. **Log4j2 MDC (Thread Context)**
+   Implement Mapped Diagnostic Context so that parallel test logs are tagged with `[threadId]` and `[testName]`, enabling easy filtering of one test's log output from a mixed parallel execution log.
+
+5. **API Testing Layer**
+   Expand the `apis/` package using RestAssured. Support hybrid UI/API tests — e.g., seeding test data via API call before a UI test, or asserting back-end state after a UI action. The `@APITest` annotation is already in place.
+
+6. **Database Assertions**
+   Implement the `db.properties` connection to enable direct database validation — useful for verifying that form submissions actually persisted to the database, independent of the UI confirmation message.
+
+7. **Visual Regression Testing**
+   Integrate a visual comparison tool (e.g., Applitools Eyes or AShot) to detect pixel-level UI regressions automatically, complementing the existing functional coverage.
+
+8. **Mobile Web Testing**
+   Add Appium configuration to extend the same POM architecture to mobile browsers (Chrome on Android, Safari on iOS) without rewriting a single page object.
+
+9. **Parameterized Cross-Browser Runs via TestNG XML**
+   Add a `testng.xml` suite file that parameterizes `browser_type`, allowing a single `mvn test` invocation to run all tests on Chrome, Firefox, and Edge in parallel.
+
+10. **Test Data Factory**
+    Replace hardcoded `RegistrationData` constructor calls with a builder/factory pattern (e.g., using Java Faker for randomized realistic data), improving test isolation and removing data-coupling between test cases.
 
 ---
 
-**Last Updated**: June 20, 2026
-**Framework Version**: 1.0-SNAPSHOT
+<div align="center">
+
+*Built with ☕ and Selenium 4 — Alaa Abdelmoneam*
+
+</div>
