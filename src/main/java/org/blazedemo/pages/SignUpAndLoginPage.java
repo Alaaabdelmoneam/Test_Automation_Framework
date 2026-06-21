@@ -3,7 +3,6 @@ package org.blazedemo.pages;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.blazedemo.pages.components.NavigationBar;
-import org.blazedemo.pages.contracts.ISignupFlow;
 import org.blazedemo.pages.dto.LoginCredentials;
 import org.blazedemo.pages.dto.RegistrationData;
 import org.openqa.selenium.By;
@@ -13,7 +12,7 @@ import static org.blazedemo.utils.actions.BrowserActions.navigateTo;
 import static org.blazedemo.utils.actions.ElementsActions.*;
 
 @Slf4j
-public class SignUpAndLoginPage extends BasePage implements ISignupFlow {
+public class SignUpAndLoginPage extends BasePage {
 
     /** Locators **/
 
@@ -41,7 +40,6 @@ public class SignUpAndLoginPage extends BasePage implements ISignupFlow {
         return this;
     }
 
-    @Override
     @Step("Signing Up on SignUpAndLoginPage with data: {0}")
     public SignUpAndLoginPage signup(RegistrationData data) {
         // Signup initial form - just needs name and email to redirect to detail form

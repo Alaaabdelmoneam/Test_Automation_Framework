@@ -11,11 +11,11 @@ import org.testng.ITestResult;
 @Log4j2
 public class RecordingListener implements ITestListener {
     public void onTestStart(ITestResult result) {
-        if (result.getInstance() instanceof UITest){
+//        if (result.getInstance() instanceof UITest){
             if (VideoRecordingConfiguration.isRecordingEnabled()){
                 RecordingManager.startRecording(result.getMethod().getMethodName());
             }
-        }
+//        }
 
     }
 

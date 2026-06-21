@@ -22,7 +22,7 @@ public class AllureLifecycleListener implements TestLifecycleListener , ISuiteLi
 
     @Override
     public void onStart(ISuite suite){
-        suite.getXmlSuite.setName("Test Automation");
+        suite.getXmlSuite().setName("Test Automation");
         allureEnvironmentWriter(
                 ImmutableMap.<String, String>builder()
                         .put("Browser", "Chrome")

@@ -14,27 +14,27 @@ public class DriverLifecycleListener implements ITestListener, IExecutionListene
     }
 
     public void onTestStart(ITestResult result) {
-        if (result.getInstance() instanceof UITest){
+//        if (result.getInstance() instanceof UITest){
             DriverManager.initDriver();
-        }
+//        }
     }
 
     public void onTestSuccess(ITestResult result) {
-        if (result.getInstance() instanceof UITest){
+//        if (result.getInstance() instanceof UITest){
             DriverManager.quitDriver();
-        }
+//        }
     }
 
     public void onTestFailure(ITestResult result) {
-        if (result.getInstance() instanceof UITest){
+//        if (result.getInstance() instanceof UITest){
             DriverManager.quitDriver();
-        }
+//        }
     }
 
     public void onTestSkipped(ITestResult result) {
-        if (result.getInstance() instanceof UITest){
+//        if (result.getInstance() instanceof UITest){
             DriverManager.quitDriver();
-        }
+//        }
     }
 
 }

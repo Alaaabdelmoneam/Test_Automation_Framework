@@ -2,7 +2,6 @@ package org.blazedemo.pages;
 
 import io.qameta.allure.Step;
 import lombok.extern.log4j.Log4j2;
-import org.blazedemo.pages.contracts.ISignupFlow;
 import org.blazedemo.pages.dto.RegistrationData;
 import org.openqa.selenium.By;
 
@@ -12,7 +11,7 @@ import static org.blazedemo.utils.actions.ElementsActions.*;
 import static org.blazedemo.utils.assertions.HardAssertions.assertElementDisplayed;
 
 @Log4j2
-public class SignUpPage extends BasePage implements ISignupFlow {
+public class SignUpPage extends BasePage {
 
     public enum Title{
         MR,
@@ -61,7 +60,6 @@ public class SignUpPage extends BasePage implements ISignupFlow {
         return this;
     }
 
-    @Override
     @Step("Performing signup on SignUpPage with data: {0}")
     public SignUpPage signup(RegistrationData data) {
         // Main signup implementation - accepts parameterized RegistrationData
