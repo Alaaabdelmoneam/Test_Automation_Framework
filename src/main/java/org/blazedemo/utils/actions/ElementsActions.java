@@ -1,9 +1,11 @@
 package org.blazedemo.utils.actions;
 
+import io.qameta.allure.Step;
 import lombok.extern.log4j.Log4j2;
 import org.blazedemo.drivers.DriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Action;
 import org.openqa.selenium.interactions.Actions;
@@ -155,6 +157,7 @@ public class ElementsActions extends BaseAction {
         DriverManager.getDriver().findElement(by).submit();
     }
 
+    @Step("check if element {by} found")
     public static boolean ElementDisplayed(By by){
         try {
             return getDefaultWait().until(d -> {
@@ -166,8 +169,12 @@ public class ElementsActions extends BaseAction {
                     return false;
                 }
             });
-        } catch (Exception e) {
-            log.info("ElementDisplayed timed out or failed for {}: {}", by, e.getMessage());
+        } catch (TimeoutException e) {
+            log.info("ElementDisplayed timed out {}: {}... returning false(not found)", by, e.getMessage());
+            return false;
+        }
+        catch (Exception e) {
+            log.info("ElementDisplayed failed for {}: {}", by, e.getMessage());
             throw new RuntimeException(e);
         }
     }
