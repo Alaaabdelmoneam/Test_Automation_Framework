@@ -1,5 +1,6 @@
 package org.blazedemo.drivers;
 
+import lombok.extern.log4j.Log4j2;
 import org.blazedemo.config.Configuration;
 import org.blazedemo.config.DriverConfiguration;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -10,6 +11,7 @@ import org.openqa.selenium.remote.AbstractDriverOptions;
 import java.util.HashMap;
 import java.util.Map;
 
+@Log4j2
 public enum OptionsFactory {
 
     CHROME{
@@ -18,18 +20,27 @@ public enum OptionsFactory {
             ChromeOptions options = new ChromeOptions();
             if (isHeadlessEnabled()){
                 options.addArguments("--headless=new");
-                options.addArguments("--disable-gpu");
-                options.addArguments("--disable-gpu-compositing");
+//                options.addArguments("--disable-gpu");
+//                options.addArguments("--disable-gpu-compositing");
 
             }
             if (isNotificationsBlocked()){
-                options.setExperimentalOption(
-                        "prefs",
-                        Map.of(
-                                "profile.default_content_setting_values.notifications",
-                                2
-                        )
-                );
+                Map<String, Object> prefs = new HashMap<>();
+
+                // 1. Core Fix: Disable the "Save Address" icon and popups completely
+                prefs.put("autofill.profile_enabled", false);
+
+//                // 2. Additional Fixes: Disable related autofill and card prompts
+//                prefs.put("autofill.credit_card_enabled", false);
+//                prefs.put("credentials_enable_service", false);
+//                prefs.put("profile.password_manager_enabled", false);
+//
+//                // 3. Keep your standard push notification blocking active
+//                prefs.put("profile.default_content_setting_values.notifications", 2);
+//
+                // Apply preferences via the mutable HashMap
+                options.setExperimentalOption("prefs", prefs);
+                options.addArguments("--disable-notifications");
             }
 
             return options;
@@ -43,13 +54,22 @@ public enum OptionsFactory {
                 options.addArguments("--headless=new");
             }
             if (isNotificationsBlocked()){
-                options.setExperimentalOption(
-                        "prefs",
-                        Map.of(
-                                "profile.default_content_setting_values.notifications",
-                                2
-                        )
-                );
+                Map<String, Object> prefs = new HashMap<>();
+                // 1. Core Fix: Disable the "Save Address" icon and popups completely
+                prefs.put("autofill.profile_enabled", false);
+
+                // 2. Additional Fixes: Disable related autofill and card prompts
+//                prefs.put("autofill.credit_card_enabled", false);
+//                prefs.put("credentials_enable_service", false);
+//                prefs.put("profile.password_manager_enabled", false);
+
+                // 3. Keep your standard push notification blocking active
+//                prefs.put("profile.default_content_setting_values.notifications", 2);
+
+                // Apply preferences via the mutable HashMap
+//                options.setExperimentalOption("prefs", prefs);
+//                options.addArguments("--disable-notifications");
+                options.setExperimentalOption("prefs", prefs);
             }
 
             return options;
@@ -64,10 +84,9 @@ public enum OptionsFactory {
             }
 
             if (isNotificationsBlocked()){
-                options.addPreference(
-                        "dom.webnotifications.enabled",
-                        false
-                );
+                // 1. Block Notifications
+                options.addPreference("signon.rememberSignons", false);
+                options.addPreference("browser.formfill.enable", false);
             }
             return options;
         }
