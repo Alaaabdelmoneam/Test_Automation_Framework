@@ -12,4 +12,8 @@ public final class DriverConfiguration {
     public static boolean headless() {
         return (CONFIG.getBoolean("headless_mode"));
     }
+
+    public static boolean blockNotifications() {
+        return (CONFIG.getBoolean("block_notification_requests"));
+    }
 }

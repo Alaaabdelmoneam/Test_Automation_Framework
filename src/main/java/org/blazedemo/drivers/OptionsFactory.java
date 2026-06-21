@@ -7,6 +7,9 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.AbstractDriverOptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum OptionsFactory {
 
     CHROME{
@@ -17,7 +20,18 @@ public enum OptionsFactory {
                 options.addArguments("--headless=new");
                 options.addArguments("--disable-gpu");
                 options.addArguments("--disable-gpu-compositing");
+
             }
+            if (isNotificationsBlocked()){
+                options.setExperimentalOption(
+                        "prefs",
+                        Map.of(
+                                "profile.default_content_setting_values.notifications",
+                                2
+                        )
+                );
+            }
+
             return options;
         }
     },
@@ -28,6 +42,16 @@ public enum OptionsFactory {
             if (isHeadlessEnabled()){
                 options.addArguments("--headless=new");
             }
+            if (isNotificationsBlocked()){
+                options.setExperimentalOption(
+                        "prefs",
+                        Map.of(
+                                "profile.default_content_setting_values.notifications",
+                                2
+                        )
+                );
+            }
+
             return options;
         }
     },
@@ -38,6 +62,13 @@ public enum OptionsFactory {
             if (isHeadlessEnabled()){
                 options.addArguments("--headless");
             }
+
+            if (isNotificationsBlocked()){
+                options.addPreference(
+                        "dom.webnotifications.enabled",
+                        false
+                );
+            }
             return options;
         }
     };
@@ -46,5 +77,8 @@ public enum OptionsFactory {
         return DriverConfiguration.headless();
     }
 
+    protected static boolean isNotificationsBlocked() {
+        return DriverConfiguration.blockNotifications();
+    }
     abstract public AbstractDriverOptions<?> createOptions();
 }
