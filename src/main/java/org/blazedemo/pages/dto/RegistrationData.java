@@ -27,7 +27,7 @@ public class RegistrationData {
     private String city;
     private String zipcode;
     private String mobileNumber;
-
+    public RegistrationData(){};
     public RegistrationData(
             String title, String name, String email, String password,
             String birthDay, String birthYear, String birthMonth,

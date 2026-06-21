@@ -13,7 +13,8 @@
   "company": "ACME Corp",
   "firstAddress": "123 Main St",
   "secondAddress": "Apt 4B",
-
+  "newsletterSubscription": true,
+  "offersSubscription": true,
   "country": "India",
   "state": "CA",
   "city": "USA",
