@@ -25,7 +25,7 @@ jobs:
         cache: maven
 
     - name: Run tests with Maven
-      run: mvn clean test -Dtest=LoginTestcases#TestValidLogin
+      run: mvn clean test -Dtest=E2ETests
 
     - name: Upload Test Reports
       if: always()
