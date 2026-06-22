@@ -32,7 +32,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test-reports
-        path: |
-          test-output/
-          target/surefire-reports/
+        path: test-output/
         retention-days: 7
