@@ -20,9 +20,9 @@ public enum OptionsFactory {
             ChromeOptions options = new ChromeOptions();
             if (isHeadlessEnabled()){
                 options.addArguments("--headless=new");
-//                options.addArguments("--disable-gpu");
-//                options.addArguments("--disable-gpu-compositing");
-
+                options.addArguments("--window-size=1920,1080");
+                options.addArguments("--no-sandbox");
+                options.addArguments("--disable-dev-shm-usage");
             }
             if (isNotificationsBlocked()){
                 Map<String, Object> prefs = new HashMap<>();
