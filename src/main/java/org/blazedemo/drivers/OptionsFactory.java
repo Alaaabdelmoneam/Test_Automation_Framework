@@ -24,20 +24,24 @@ public enum OptionsFactory {
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
             }
+            java.io.File extension = new java.io.File("ublock.crx");
+            if (extension.exists()){
+                options.addExtensions(extension);
+            }
             if (isNotificationsBlocked()){
                 Map<String, Object> prefs = new HashMap<>();
 
                 // 1. Core Fix: Disable the "Save Address" icon and popups completely
                 prefs.put("autofill.profile_enabled", false);
 
-//                // 2. Additional Fixes: Disable related autofill and card prompts
-//                prefs.put("autofill.credit_card_enabled", false);
-//                prefs.put("credentials_enable_service", false);
-//                prefs.put("profile.password_manager_enabled", false);
-//
-//                // 3. Keep your standard push notification blocking active
-//                prefs.put("profile.default_content_setting_values.notifications", 2);
-//
+            //    // 2. Additional Fixes: Disable related autofill and card prompts
+            //    prefs.put("autofill.credit_card_enabled", false);
+            //    prefs.put("credentials_enable_service", false);
+            //    prefs.put("profile.password_manager_enabled", false);
+
+            //    // 3. Keep your standard push notification blocking active
+            //    prefs.put("profile.default_content_setting_values.notifications", 2);
+
                 // Apply preferences via the mutable HashMap
                 options.setExperimentalOption("prefs", prefs);
                 options.addArguments("--disable-notifications");
@@ -52,7 +56,15 @@ public enum OptionsFactory {
             EdgeOptions options = new EdgeOptions();
             if (isHeadlessEnabled()){
                 options.addArguments("--headless=new");
+                options.addArguments("--window-size=1920,1080");
+                options.addArguments("--no-sandbox");
+                options.addArguments("--disable-dev-shm-usage");
             }
+            java.io.File extension = new java.io.File("ublock.crx");
+            if (extension.exists()){
+                options.addExtensions(extension);
+            }
+
             if (isNotificationsBlocked()){
                 Map<String, Object> prefs = new HashMap<>();
                 // 1. Core Fix: Disable the "Save Address" icon and popups completely
@@ -80,7 +92,14 @@ public enum OptionsFactory {
             // add your options parsing and validations here
             FirefoxOptions options = new FirefoxOptions();
             if (isHeadlessEnabled()){
-                options.addArguments("--headless");
+                options.addArguments("--headless=new");
+                options.addArguments("--window-size=1920,1080");
+                options.addArguments("--no-sandbox");
+                options.addArguments("--disable-dev-shm-usage");
+            }
+            java.io.File extension = new java.io.File("ublock.crx");
+            if (extension.exists()){
+                options.addExtensions(extension);
             }
 
             if (isNotificationsBlocked()){
