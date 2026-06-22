@@ -35,8 +35,23 @@ jobs:
         echo "$allureBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         Write-Host "Allure CLI installed at: $allureBin"
 
+    - name: Restore Allure History
+      uses: actions/cache@v4
+      with:
+        path: test-output/allure-reports/report-full/history
+        key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
+        restore-keys: |
+          allure-history-${{ github.ref_name }}-
+
     - name: Run tests with Maven
       run: mvn clean test -Dtest=E2ETests
+
+    - name: Save Allure History
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: test-output/allure-reports/report-full/history
+        key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
 
     - name: Upload Allure Report
       if: always()
