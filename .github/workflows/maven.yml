@@ -24,12 +24,6 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Download uBlock Origin CRX for Ad Blocking
-      shell: pwsh
-      run: |
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=110.0&acceptformat=crx2,crx3&x=id%3Dcjpalhdlnbpafiamejdnhcphjbkeiame%26uc" -OutFile "ublock.crx"
-
     - name: Run tests with Maven
       run: mvn clean test -Dtest=E2ETests
 

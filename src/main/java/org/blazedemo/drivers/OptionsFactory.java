@@ -24,10 +24,7 @@ public enum OptionsFactory {
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
             }
-            java.io.File extension = new java.io.File("ublock.crx");
-            if (extension.exists()){
-                options.addExtensions(extension);
-            }
+            loadExtensions(options, ".crx");
             if (isNotificationsBlocked()){
                 Map<String, Object> prefs = new HashMap<>();
 
@@ -60,10 +57,7 @@ public enum OptionsFactory {
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
             }
-            java.io.File extension = new java.io.File("ublock.crx");
-            if (extension.exists()){
-                options.addExtensions(extension);
-            }
+            loadExtensions(options, ".crx");
 
             if (isNotificationsBlocked()){
                 Map<String, Object> prefs = new HashMap<>();
@@ -97,10 +91,7 @@ public enum OptionsFactory {
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
             }
-            java.io.File extension = new java.io.File("ublock.crx");
-            if (extension.exists()){
-                options.addExtensions(extension);
-            }
+            loadExtensions(options, ".xpi");
 
             if (isNotificationsBlocked()){
                 // 1. Block Notifications
@@ -110,6 +101,35 @@ public enum OptionsFactory {
             return options;
         }
     };
+
+    private static void loadExtensions(org.openqa.selenium.remote.AbstractDriverOptions<?> options, String extensionSuffix) {
+        java.io.File extensionsDir = new java.io.File("extensions");
+        if (extensionsDir.exists() && extensionsDir.isDirectory()) {
+            java.io.File[] files = extensionsDir.listFiles((dir, name) -> name.endsWith(extensionSuffix));
+            if (files != null) {
+                for (java.io.File file : files) {
+                    if (options instanceof ChromeOptions) {
+                        ((ChromeOptions) options).addExtensions(file);
+                    } else if (options instanceof EdgeOptions) {
+                        ((EdgeOptions) options).addExtensions(file);
+                    } else if (options instanceof FirefoxOptions) {
+                        ((FirefoxOptions) options).addExtensions(file);
+                    }
+                }
+            }
+        }
+        // Fallback
+        java.io.File fallback = new java.io.File("ublock" + extensionSuffix);
+        if (fallback.exists()) {
+            if (options instanceof ChromeOptions) {
+                ((ChromeOptions) options).addExtensions(fallback);
+            } else if (options instanceof EdgeOptions) {
+                ((EdgeOptions) options).addExtensions(fallback);
+            } else if (options instanceof FirefoxOptions) {
+                ((FirefoxOptions) options).addExtensions(fallback);
+            }
+        }
+    }
 
     protected static boolean isHeadlessEnabled() {
         return DriverConfiguration.headless();
