@@ -27,10 +27,13 @@ jobs:
     - name: Install Allure CLI
       shell: pwsh
       run: |
-        Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-        irm get.scoop.sh | iex
-        scoop install allure
-        allure --version
+        $version = "2.29.0"
+        $url = "https://github.com/allure-framework/allure2/releases/download/$version/allure-$version.zip"
+        Invoke-WebRequest -Uri $url -OutFile allure.zip
+        Expand-Archive -Path allure.zip -DestinationPath "$env:RUNNER_TOOL_CACHE\allure" -Force
+        $allureBin = "$env:RUNNER_TOOL_CACHE\allure\allure-$version\bin"
+        echo "$allureBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        Write-Host "Allure CLI installed at: $allureBin"
 
     - name: Run tests with Maven
       run: mvn clean test -Dtest=E2ETests
