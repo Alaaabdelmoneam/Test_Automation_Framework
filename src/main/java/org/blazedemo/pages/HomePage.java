@@ -66,6 +66,11 @@ public class HomePage extends BasePage{
     }
 
     public static boolean  isPageLoaded(){
+        log.debug("Checking if page is loaded");
+        log.debug("Current URL: " + getCurrentUrl());
+        log.debug("Home Page Button: " + NavigationBar.checkButtonEnabled(NavigationBar.homePageButton));
+        log.debug("Automation Label: " + ElementDisplayed(AutomationLabel));
+        log.debug("Featured Items Label: " + ElementDisplayed(FeaturedItemsLabel));
         return NavigationBar.checkButtonEnabled(NavigationBar.homePageButton)
                 && ElementDisplayed(AutomationLabel)
                 && ElementDisplayed(FeaturedItemsLabel);
