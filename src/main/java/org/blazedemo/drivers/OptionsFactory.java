@@ -103,31 +103,36 @@ public enum OptionsFactory {
     };
 
     private static void loadExtensions(org.openqa.selenium.remote.AbstractDriverOptions<?> options, String extensionSuffix) {
+        java.util.List<java.io.File> toLoad = new java.util.ArrayList<>();
+
+        // Scan the extensions/ directory
         java.io.File extensionsDir = new java.io.File("extensions");
         if (extensionsDir.exists() && extensionsDir.isDirectory()) {
             java.io.File[] files = extensionsDir.listFiles((dir, name) -> name.endsWith(extensionSuffix));
             if (files != null) {
-                for (java.io.File file : files) {
-                    if (options instanceof ChromeOptions) {
-                        ((ChromeOptions) options).addExtensions(file);
-                    } else if (options instanceof EdgeOptions) {
-                        ((EdgeOptions) options).addExtensions(file);
-                    } else if (options instanceof FirefoxOptions) {
-                        ((FirefoxOptions) options).addExtensions(file);
-                    }
-                }
+                toLoad.addAll(java.util.Arrays.asList(files));
             }
         }
-        // Fallback
+
+        // Fallback: root-level ublock.crx / ublock.xpi
         java.io.File fallback = new java.io.File("ublock" + extensionSuffix);
         if (fallback.exists()) {
-            if (options instanceof ChromeOptions) {
-                ((ChromeOptions) options).addExtensions(fallback);
-            } else if (options instanceof EdgeOptions) {
-                ((EdgeOptions) options).addExtensions(fallback);
-            } else if (options instanceof FirefoxOptions) {
-                ((FirefoxOptions) options).addExtensions(fallback);
+            toLoad.add(fallback);
+        }
+
+        if (toLoad.isEmpty()) return;
+
+        if (options instanceof ChromeOptions) {
+            ((ChromeOptions) options).addExtensions(toLoad.toArray(new java.io.File[0]));
+        } else if (options instanceof EdgeOptions) {
+            ((EdgeOptions) options).addExtensions(toLoad.toArray(new java.io.File[0]));
+        } else if (options instanceof FirefoxOptions) {
+            // FirefoxOptions does not have addExtensions(File) — use FirefoxProfile instead
+            org.openqa.selenium.firefox.FirefoxProfile profile = new org.openqa.selenium.firefox.FirefoxProfile();
+            for (java.io.File xpi : toLoad) {
+                profile.addExtension(xpi);
             }
+            ((FirefoxOptions) options).setProfile(profile);
         }
     }
 
