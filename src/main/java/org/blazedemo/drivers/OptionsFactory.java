@@ -24,6 +24,14 @@ public enum OptionsFactory {
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
             }
+            // Block Google ad/survey domains at the network level
+            options.addArguments(
+                "--host-rules=MAP pagead2.googlesyndication.com 127.0.0.1," +
+                "MAP googleads.g.doubleclick.net 127.0.0.1," +
+                "MAP adservice.google.com 127.0.0.1," +
+                "MAP www.googletagservices.com 127.0.0.1," +
+                "MAP surveys.google.com 127.0.0.1"
+            );
             loadExtensions(options, ".crx");
             if (isNotificationsBlocked()){
                 Map<String, Object> prefs = new HashMap<>();
